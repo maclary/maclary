@@ -1,0 +1,13 @@
+# Node
+node_modules/
+package-lock.json
+
+# Docs
+docs/
+
+# Builds
+dist/
+*.tgz
+**/*.js
+**/*.mjs
+!.*rc.js
