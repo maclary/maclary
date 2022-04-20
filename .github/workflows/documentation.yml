@@ -1,24 +1,24 @@
-name: Generate Docs
+name: Generate Documentation
 
 on:
   push:
     branches:
-      - main
+      - stable
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout Repository
         uses: actions/checkout@v2
         
-      - name: Install modules
+      - name: Install Dependencies
         run: npm install
         
-      - name: Build docs
+      - name: Build Documentation
         run: npm run clean && npm run docs
 
-      - name: Deploy
+      - name: Deploy Github Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           publish_branch: gh-pages
