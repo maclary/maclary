@@ -12,9 +12,7 @@ export class DMOnly extends Precondition {
         return this.error('You cannot run this chat input command outside of DMs.');
     }
 
-    public override contextMenuRun(
-        interaction: Command.UserContextMenu | Command.MessageContextMenu,
-    ): Result {
+    public override contextMenuRun(interaction: Command.ContextMenu): Result {
         if (interaction.guildId === null) return this.ok();
         return this.error('You cannot run this context menu command outside of DMs.');
     }

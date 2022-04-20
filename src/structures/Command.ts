@@ -252,6 +252,7 @@ export namespace Command {
     export type ChatInput = Discord.ChatInputCommandInteraction;
     export type UserContextMenu = Discord.UserContextMenuCommandInteraction;
     export type MessageContextMenu = Discord.MessageContextMenuCommandInteraction;
+    export type ContextMenu = UserContextMenu | MessageContextMenu;
     export type Message = Discord.Message;
     export type Button = Discord.ButtonInteraction;
     export type SelectMenu = Discord.SelectMenuInteraction;

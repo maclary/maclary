@@ -15,9 +15,7 @@ export class NSFW extends Precondition {
         return this.error('You cannot run this chat input command outside of NSFW channels.');
     }
 
-    public override contextMenuRun(
-        interaction: Command.UserContextMenu | Command.MessageContextMenu,
-    ): Result {
+    public override contextMenuRun(interaction: Command.ContextMenu): Result {
         if (interaction.channel instanceof DMChannel) return this.ok();
         if (Reflect.get(interaction.channel || {}, 'nsfw') === true) return this.ok();
         return this.error('You cannot run this context menu command outside of NSFW channels.');
