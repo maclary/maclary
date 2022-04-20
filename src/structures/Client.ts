@@ -9,8 +9,10 @@ import {
     broadcastDestroy,
 } from '../managers/PluginManager';
 import { getRootData } from '../internal/RootScanner';
+import { Prefix as PrefixRegex } from '../utils/Regexes';
 
 import { Client, type ClientOptions } from 'discord.js';
+import { z } from 'zod';
 
 export interface MaclaryClientOptions {
     /**
@@ -58,6 +60,8 @@ export class MaclaryClient extends Client {
     public constructor(options: ClientOptions) {
         super(options);
 
+        this.validateOptions();
+
         container.client = this;
 
         this.events = new EventManager();
@@ -78,6 +82,7 @@ export class MaclaryClient extends Client {
             throw new Error('INVALID_TOKEN');
         }
 
+        this.validateOptions();
         await this.preparing();
         await super.login(token);
         await this.ready();
@@ -114,6 +119,14 @@ export class MaclaryClient extends Client {
     private async ready(): Promise<void> {
         for (const promise of [() => this.plugins[broadcastReady](), () => this.commands.patch()])
             await promise();
+    }
+
+    private validateOptions(): void {
+        const prefixes = z.union([
+            z.string().regex(PrefixRegex),
+            z.array(z.string().regex(PrefixRegex)),
+        ]);
+        prefixes.parse(this.options.defaultPrefix);
     }
 }
 
