@@ -1,0 +1,13 @@
+{
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4,
+    "editor.useTabStops": true,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "files.autoSave": "onFocusChange",
+    "files.eol": "\n",
+    "prettier.tabWidth": 4,
+    "eslint.format.enable": true,
+    "eslint.validate": ["typescript"],
+    "typescript.tsdk": "node_modules\\typescript\\lib"
+}
