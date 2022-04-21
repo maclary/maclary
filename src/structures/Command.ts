@@ -166,7 +166,8 @@ export abstract class Command extends Base {
      */
     public async onMessage(message: Command.Message, args: Command.Arguments): Promise<unknown> {
         if (this.internalType === Command.InternalType.Group) {
-            const command = this.options.find((c) => c.name === args.single());
+            const single = args.single();
+            const command = this.options.find((c) => c.name === single);
             if (command instanceof Command) return command.onMessage(message, args);
             return undefined;
         }
