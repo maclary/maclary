@@ -9,9 +9,9 @@ import {
     broadcastDestroy,
 } from '../managers/PluginManager';
 import { getRootData } from '../internal/RootScanner';
-import { Prefix as PrefixRegex } from '../utils/Regexes';
+import { Prefix as PrefixRegex, Snowflake as SnowflakeRegex } from '../utils/Regexes';
 
-import { Client, type ClientOptions } from 'discord.js';
+import { Client, type Snowflake, type ClientOptions } from 'discord.js';
 import { z } from 'zod';
 
 export interface MaclaryClientOptions {
@@ -25,6 +25,17 @@ export interface MaclaryClientOptions {
      * @default typeof console
      */
     logger?: any;
+
+    /**
+     * The ID of the development guild, where interaction commands will be
+     * loaded when in development.
+     */
+    developmentGuildId: Snowflake;
+
+    /**
+     * The prefix to use when in development.
+     */
+    developmentPrefix: string | string[];
 }
 
 export class MaclaryClient extends Client {
@@ -74,10 +85,10 @@ export class MaclaryClient extends Client {
 
     /**
      * Connect the client to the Discord API.
-     * @param [token] {string} Discord bot token
+     * @param token {string} Discord bot token
      * @returns {Promise<string>} The token used to login
      */
-    public override async login(token?: string): Promise<string> {
+    public override async login(token: string): Promise<string> {
         if (!token || typeof token !== 'string') {
             throw new Error('INVALID_TOKEN');
         }
@@ -87,7 +98,7 @@ export class MaclaryClient extends Client {
         await super.login(token);
         await this.ready();
 
-        return token;
+        return (process.env.__DISCORD_TOKEN__ = token);
     }
 
     /**
@@ -104,7 +115,7 @@ export class MaclaryClient extends Client {
      */
     public async reload(): Promise<string> {
         await this.destroy();
-        return this.login();
+        return this.login(process.env.__DISCORD_TOKEN__ as string);
     }
 
     private async preparing(): Promise<void> {
@@ -117,7 +128,20 @@ export class MaclaryClient extends Client {
     }
 
     private async ready(): Promise<void> {
-        for (const promise of [() => this.plugins[broadcastReady](), () => this.commands.patch()])
+        if (process.env.MACLARY_ENV === 'development') {
+            if (this.shard === null) {
+                this.options.defaultPrefix = this.options.developmentPrefix;
+                this.commands.application = await this.guilds.fetch(
+                    this.options.developmentGuildId,
+                );
+            } else throw new Error('DEVELOPMENT_ON_SHARD');
+        }
+
+        for (const promise of [
+            () => this.application?.fetch(),
+            () => this.plugins[broadcastReady](),
+            () => this.commands.patch(),
+        ])
             await promise();
     }
 
@@ -126,7 +150,12 @@ export class MaclaryClient extends Client {
             z.string().regex(PrefixRegex),
             z.array(z.string().regex(PrefixRegex)),
         ]);
+
         prefixes.parse(this.options.defaultPrefix);
+        prefixes.parse(this.options.developmentPrefix);
+
+        const snowflake = z.string().regex(SnowflakeRegex);
+        snowflake.parse(this.options.developmentGuildId);
     }
 }
 

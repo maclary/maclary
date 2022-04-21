@@ -61,6 +61,7 @@ It is very important that you include the `main` field within your package.json 
 src/index.ts
 
 ```ts
+process.env.MACLARY_ENV = 'development';
 import { MaclaryClient } from 'maclary';
 import { Partials } from 'discord.js';
 
@@ -68,9 +69,13 @@ const client = new MaclaryClient({
     intents: ['Guilds', 'GuildMessages', 'DirectMessages', 'MessageContent'],
     partials: [Partials.Channel],
     defaultPrefix: '!',
+    developmentGuildId: '123456789012345678',
+    developmentPrefix: 'dev!',
 });
 
-client.login('token');
+const token =
+    process.env.MACLARY_ENV === 'development' ? 'development_bot_token' : 'production_bot_token';
+client.login(token);
 ```
 
 src/commands/echo.ts

@@ -5,6 +5,7 @@ const Messages = {
     INVALID_PLUGIN: 'An invalid plugin was provided.',
     UNSUPPORTED_DJS_VERSION: 'The version of Discord.js you are using is not supported.',
     FAILED_APPLICATION: 'Failed to load application.',
+    DEVELOPMENT_ON_SHARD: 'Development mode is not supported when sharding.',
 
     COMMAND_MISSING_METHOD: (name: string, method: string) =>
         `Command ${name} is missing its ${method} method.`,
