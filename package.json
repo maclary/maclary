@@ -16,7 +16,7 @@
         "test": "jest",
         "test:watch": "jest --watch",
         "docs": "typedoc",
-        "clean": "rm -rf dist docs *.tgz && mkdir docs",
+        "clean": "rm -rf dist docs *.tgz",
         "build": "tsc && gen-esm-wrapper ./dist/index.js ./dist/index.mjs",
         "build:watch": "tsc --watch",
         "prepare": "husky install .github/husky"
@@ -73,7 +73,27 @@
     "commitlint": {
         "extends": [
             "@commitlint/config-conventional"
-        ]
+        ],
+        "rules": {
+            "type-enum": [
+                2,
+                "always",
+                [
+                    "build",
+                    "chore",
+                    "ci",
+                    "docs",
+                    "feat",
+                    "fix",
+                    "perf",
+                    "refactor",
+                    "revert",
+                    "style",
+                    "test",
+                    "types"
+                ]
+            ]
+        }
     },
     "lint-staged": {
         "src/*.ts": "eslint src --fix"
