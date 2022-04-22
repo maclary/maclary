@@ -87,7 +87,7 @@ function compareOptions(existing: any, local: any, prefix = ''): Differences {
     }
 
     // Compare required
-    if ((existing.required ?? false) !== local.required) {
+    if ((existing.required ?? false) !== (local.required ?? false)) {
         differences.push([`${prefix}required`, existing.required, local.required]);
     }
 
