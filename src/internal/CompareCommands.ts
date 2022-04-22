@@ -1,161 +1,173 @@
-/* eslint no-negated-condition: "off" */
-
 import { Command } from '../structures/Command';
 
-function compareContextMenus(external: any, local: any): [string, any, any][] {
-    const differences: [string, any, any][] = [];
+export type Differences = [string, any, any][];
 
-    // Base properties
-    if (external.name !== local.name) differences.push(['name', external.name, local.name]);
-    if (external.description !== local.description)
-        differences.push(['description', external.description, local.description]);
+export function compareCommands(existing: any, local: any): Differences {
+    if (existing.type === Command.Type.ChatInput) {
+        return compareChatInputs(existing, local);
+    }
+    return compareContextMenus(existing, local);
+}
+
+export function compareContextMenus(existing: any, local: any): Differences {
+    const differences: Differences = [];
+
+    // Compare name
+    if (existing.name.toLowerCase() !== local.name.toLowerCase()) {
+        differences.push(['name', existing.name, local.name]);
+    }
+
+    // Compare description
+    if (existing.description !== local.description) {
+        differences.push(['description', existing.description, local.description]);
+    }
 
     return differences;
 }
 
-function compareChatInputs(external: any, local: any, prefix = ''): [string, any, any][] {
-    const differences: [string, any, any][] = [];
+export function compareChatInputs(existing: any, local: any, prefix = ''): Differences {
+    const differences: Differences = [];
 
-    // Base properties
-    if (external.name !== local.name)
-        differences.push([`${prefix}name`, external.name, local.name]);
-    if (external.description !== local.description)
-        differences.push([`${prefix}description`, external.description, local.description]);
+    // Compare name
+    if (existing.name.toLowerCase() !== local.name.toLowerCase()) {
+        differences.push([`${prefix}name`, existing.name, local.name]);
+    }
 
-    // Options
-    if ((external.options?.length ?? 0) !== (local.options?.length ?? 0)) {
+    // Compare description
+    if (existing.description !== local.description) {
+        differences.push([`${prefix}description`, existing.description, local.description]);
+    }
+
+    // Compare options length
+    if ((existing.options?.length ?? 0) !== (local.options?.length ?? 0)) {
         differences.push([
             `${prefix}options length`,
-            external.options?.length ?? 0,
-            local.options.length,
+            existing.options?.length ?? 0,
+            local.options?.length ?? 0,
         ]);
-    } else if (local.options.length > 0) {
-        const externalOptions = external.options.sort((a: any, b: any) =>
-            a.name.localeCompare(b.name),
-        );
-        const localOptions = local.options.sort((a: any, b: any) => a.name.localeCompare(b.name));
+    }
 
-        for (let i = 0; i < externalOptions.length; i++) {
-            const [externalOption, localOption] = [externalOptions[i], localOptions[i]];
-            const differencesInOption = compareChatInputOptions(
-                externalOption,
-                localOption,
-                `${prefix}${localOption.name}`,
+    // Compare options
+    if (local.options?.length > 0) {
+        for (let i = 0; i < local.options.length; i++) {
+            differences.push(
+                ...compareOptions(
+                    existing.options?.[i],
+                    local.options[i],
+                    `${prefix + local.options[i].name} `,
+                ),
             );
-            differences.push(...differencesInOption);
         }
     }
 
     return differences;
 }
 
-function compareChatInputOptions(external: any, local: any, prefix = ''): [string, any, any][] {
-    const differences: [string, any, any][] = [];
+function compareOptions(existing: any, local: any, prefix = ''): Differences {
+    const differences: Differences = [];
 
-    // Base properties
-    if (external.type !== local.type)
-        differences.push([`${prefix}type`, external.type, local.type]);
-    if (external.name !== local.name)
-        differences.push([`${prefix}name`, external.name, local.name]);
-    if (external.description !== local.description)
-        differences.push([`${prefix}description`, external.description, local.description]);
-    if (external.required !== local.required)
-        differences.push([`${prefix}required`, external.required, local.required]);
-
-    // Option type properties
-    if (external.minValue !== local.minValue)
-        differences.push([`${prefix}minValue`, external.minValue, local.minValue]);
-    if (external.maxValue !== local.maxValue)
-        differences.push([`${prefix}maxValue`, external.maxValue, local.maxValue]);
-
-    if (external.autocomplete !== local.autocomplete)
-        differences.push([`${prefix}autocomplete`, external.autocomplete, local.autocomplete]);
-    if ((external.channelTypes?.length ?? 0) !== (local.channelTypes?.length ?? 0))
-        differences.push([
-            `${prefix}channelTypes length`,
-            external.channelTypes?.length ?? 0,
-            local.channelTypes?.length ?? 0,
-        ]);
-    if (local.channelTypes?.length > 0) {
-        const externalChannelTypes = external.channelTypes.sort();
-        const localChannelTypes = local.channelTypes.sort();
-        for (let i = 0; i < externalChannelTypes.length; i++) {
-            const [externalChannelType, localChannelType] = [
-                externalChannelTypes[i],
-                localChannelTypes[i],
-            ];
-            if (externalChannelType !== localChannelType)
-                differences.push([`${prefix}channelType`, externalChannelType, localChannelType]);
-        }
+    // Existing option
+    if (!existing) {
+        return [`${prefix}option does not exist`, undefined, local];
     }
 
-    // Subcommand group
-    if ([external.type, local.type].includes(Command.OptionType.SubcommandGroup)) {
-        if ((external.options?.length ?? 0) !== (local.options?.length ?? 0)) {
-            differences.push([
-                `${prefix}options length`,
-                external.options?.length ?? 0,
-                local.options.length,
-            ]);
-        } else if (local.options.length > 0) {
-            const externalOptions = external.options.sort((a: any, b: any) =>
-                a.name.localeCompare(b.name),
-            );
-            const localOptions = local.options.sort((a: any, b: any) =>
-                a.name.localeCompare(b.name),
-            );
-
-            for (let i = 0; i < externalOptions.length; i++) {
-                const [externalOption, localOption] = [externalOptions[i], localOptions[i]];
-                const differencesInOption = compareChatInputs(
-                    externalOption,
-                    localOption,
-                    `${prefix}${localOption.name}`,
-                );
-                differences.push(...differencesInOption);
-            }
-        }
+    // Compare type
+    if (existing.type !== local.type) {
+        differences.push([`${prefix}type`, existing.type, local.type]);
     }
 
-    // Option choices
-    if ((external.choices?.length ?? 0) !== (local.choices?.length ?? 0)) {
+    // Compare name
+    if (existing.name.toLowerCase() !== local.name.toLowerCase()) {
+        differences.push([`${prefix}name`, existing.name, local.name]);
+    }
+
+    // Compare description
+    if (existing.description !== local.description) {
+        differences.push([`${prefix}description`, existing.description, local.description]);
+    }
+
+    // Compare required
+    if ((existing.required ?? false) !== local.required) {
+        differences.push([`${prefix}required`, existing.required, local.required]);
+    }
+
+    // Compare min and max values
+    if ((existing.minValue ?? 0) !== (local.minValue ?? 0)) {
+        differences.push([`${prefix}minValue`, existing.minValue, local.minValue]);
+    }
+    if ((existing.maxValue ?? Infinity) !== (local.maxValue ?? Infinity)) {
+        differences.push([`${prefix}maxValue`, existing.maxValue, local.maxValue]);
+    }
+
+    // Compare autocomplete
+    if ((existing.autocomplete ?? false) !== (local.autocomplete ?? false)) {
+        differences.push([`${prefix}autocomplete`, existing.autocomplete, local.autocomplete]);
+    }
+
+    // Compare choices length
+    if ((existing.choices?.length ?? 0) !== (local.choices?.length ?? 0)) {
         differences.push([
             `${prefix}choices length`,
-            external.choices?.length ?? 0,
+            existing.choices?.length ?? 0,
             local.choices?.length ?? 0,
         ]);
-    } else if (local.choices?.length > 0) {
-        const externalChoices = external.choices.sort((a: any, b: any) =>
-            a.name.localeCompare(b.name),
-        );
-        const localChoices = local.choices.sort((a: any, b: any) => a.name.localeCompare(b.name));
+    }
 
-        for (let i = 0; i < externalChoices.length; i++) {
-            const [externalChoice, localChoice] = [externalChoices[i], localChoices[i]];
-            const differencesInChoice = compareChatInputOptionChoices(
-                externalChoice,
-                localChoice,
-                `${prefix}${localChoice.name}`,
+    // Compare choices
+    if (local.choices?.length > 0) {
+        for (let i = 0; i < local.choices.length; i++) {
+            differences.push(
+                ...compareChoice(
+                    existing.choices?.[i],
+                    local.choices[i],
+                    `${prefix + local.choices[i].name} `,
+                ),
             );
-            differences.push(...differencesInChoice);
+        }
+    }
+
+    // Compare options length
+    if ((existing.options?.length ?? 0) !== (local.options?.length ?? 0)) {
+        differences.push([
+            `${prefix}options length`,
+            existing.options?.length ?? 0,
+            local.options?.length ?? 0,
+        ]);
+    }
+
+    // Compare options
+    if (local.options?.length > 0) {
+        for (let i = 0; i < local.options.length; i++) {
+            differences.push(
+                ...compareOptions(
+                    existing.options?.[i],
+                    local.options[i],
+                    `${prefix + local.options[i].name} `,
+                ),
+            );
         }
     }
 
     return differences;
 }
 
-function compareChatInputOptionChoices(old: any, now: any, prefix = ''): [string, any, any][] {
-    const differences: [string, any, any][] = [];
-    if (old.name !== now.name)
-        differences.push([`${prefix}option choice name`, old.name, now.name]);
-    if (old.value !== now.value)
-        differences.push([`${prefix}option choice value`, old.value, now.value]);
-    return differences;
-}
+function compareChoice(existing: any, local: any, prefix = ''): Differences {
+    const differences: Differences = [];
 
-export function compareCommands(external: any, local: any): [string, any, any][] {
-    if (external.type === Command.Type.ChatInput) {
-        return compareChatInputs(external, local);
+    // Existing option
+    if (!existing) {
+        return [`${prefix}choice does not exist`, undefined, local];
     }
-    return compareContextMenus(external, local);
+
+    // Compare name
+    if (existing.name.toLowerCase() !== local.name.toLowerCase()) {
+        differences.push([`${prefix}option choice name`, existing.name, local.name]);
+    }
+
+    // Compare value
+    if (existing.value !== local.value) {
+        differences.push([`${prefix}option choice value`, existing.value, local.value]);
+    }
+
+    return differences;
 }
