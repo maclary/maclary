@@ -1,6 +1,6 @@
 {
     "name": "maclary",
-    "version": "0.2.0-dev",
+    "version": "0.2.0",
     "description": "Framework for making Discord bots a lot easier.",
     "author": "ApteryxXYZ",
     "main": "dist/index.js",
