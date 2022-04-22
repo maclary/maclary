@@ -50,10 +50,10 @@ export class PreconditionsContainer extends Base {
         return Precondition.prototype.ok();
     }
 
-    public async chatInputRun(message: Command.ChatInput, command: Command): Promise<Result> {
+    public async chatInputRun(interaction: Command.ChatInput, command: Command): Promise<Result> {
         for (const entrie of this.entries) {
             if (entrie.chatInputRun) {
-                const result = await entrie.chatInputRun(message, command);
+                const result = await entrie.chatInputRun(interaction, command);
                 if (!result.success) return result;
             }
         }
@@ -62,12 +62,12 @@ export class PreconditionsContainer extends Base {
     }
 
     public async contextMenuRun(
-        message: Command.UserContextMenu | Command.MessageContextMenu,
+        interaction: Command.ContextMenu,
         command: Command,
     ): Promise<Result> {
         for (const entrie of this.entries) {
             if (entrie.contextMenuRun) {
-                const result = await entrie.contextMenuRun(message, command);
+                const result = await entrie.contextMenuRun(interaction, command);
                 if (!result.success) return result;
             }
         }

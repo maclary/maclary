@@ -44,7 +44,7 @@ export default class OnMessageCreate extends Event {
 
         // Parse the command name and args
         lexer.setInput(message.cleanContent);
-        const lexOut = lexer.lexCommand((s) => (s.startsWith(prefix) ? 1 : null));
+        const lexOut = lexer.lexCommand((s) => (s.startsWith(prefix) ? prefix.length : null));
         if (!lexOut) return;
         const [commandName, commandTokens] = [lexOut[0].value, lexOut[1]()];
 

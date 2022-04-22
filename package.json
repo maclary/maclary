@@ -1,6 +1,6 @@
 {
     "name": "maclary",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Framework for making Discord bots a lot easier.",
     "author": "ApteryxXYZ",
     "main": "dist/index.js",
@@ -16,7 +16,7 @@
         "test": "jest",
         "test:watch": "jest --watch",
         "docs": "typedoc",
-        "clean": "rm -rf dist docs *.tgz && mkdir docs",
+        "clean": "rm -rf dist docs *.tgz",
         "build": "tsc && gen-esm-wrapper ./dist/index.js ./dist/index.mjs",
         "build:watch": "tsc --watch",
         "prepare": "husky install .github/husky"
@@ -55,7 +55,7 @@
         "@sapphire/eslint-config": "^4.3.2",
         "@types/jest": "^27.4.1",
         "@types/node": "^17.0.23",
-        "discord.js": "^14.0.0-dev.1650240532-9ef7ffd",
+        "discord.js": "^14.0.0-dev.1650586180-61a44c5",
         "eslint": "^8.12.0",
         "husky": "^7.0.4",
         "jest": "^27.5.1",
@@ -73,7 +73,27 @@
     "commitlint": {
         "extends": [
             "@commitlint/config-conventional"
-        ]
+        ],
+        "rules": {
+            "type-enum": [
+                2,
+                "always",
+                [
+                    "build",
+                    "chore",
+                    "ci",
+                    "docs",
+                    "feat",
+                    "fix",
+                    "perf",
+                    "refactor",
+                    "revert",
+                    "style",
+                    "test",
+                    "types"
+                ]
+            ]
+        }
     },
     "lint-staged": {
         "src/*.ts": "eslint src --fix"

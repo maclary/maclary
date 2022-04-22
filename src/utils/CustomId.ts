@@ -17,7 +17,11 @@ export class CustomId extends null {
     }
 
     public static parse(customId: string): [string[], Record<string, unknown>] {
-        const [commandsString, optionsString] = customId.split(CustomIdDivider);
-        return [JSON.parse(commandsString), JSON.parse(optionsString)];
+        try {
+            const [commandsString, optionsString] = customId.split(CustomIdDivider);
+            return [JSON.parse(commandsString), JSON.parse(optionsString)];
+        } catch {
+            return [[], {}];
+        }
     }
 }

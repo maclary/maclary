@@ -2,6 +2,13 @@
 import TwitterEmoji from 'twemoji-parser/dist/lib/regex.js';
 
 /**
+ * Regex that matches prefixes.
+ * @raw `/^([$-/:-?{-~!"^_`\[\]\w]{1,10})$/`
+ * @remark Capture group 1 is the prefix, named `prefix`
+ */
+export const Prefix = /^(?<prefix>[$-/:-?{-~!"^_`\[\]\w]{1,10})$/;
+
+/**
  * Regex that can capture any Discord Snowflake ID.
  * @raw `/^(?<id>\d{17,19})$/`
  * @remark Capture group 1 is the Snowflake ID, named `id`
