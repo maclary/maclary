@@ -7,15 +7,16 @@ on:
 
 jobs:
   deploy:
+    name: Generate Documentaion
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v2
         
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm install
         
-      - name: Build Documentation
+      - name: Build documentation
         run: npm run clean && npm run docs
 
       - name: Deploy Github Pages

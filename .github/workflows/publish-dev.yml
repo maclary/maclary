@@ -1,0 +1,49 @@
+name: Publish Development
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */12 * * *'
+
+jobs:
+  npm:
+    name: Publish Development
+    runs-on: ubuntu-latest
+    if: github.repository_owner = 'maclary'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+
+      - name: Check previous released version
+        id: pre-release
+        run: |
+          if [[ $(npm view maclary@dev version | grep -e "$(jq --raw-output '.version' package.json)\..*") ]]; \
+          then echo '::set-output name=release::false'; \
+          else echo '::set-output name=release::true'; fi
+
+      - name: Install dependencies
+        if: steps.pre-release.outputs.release == 'true'
+        run: npm ci --ignore-scripts
+
+      - name: Compile TypeScript
+        if: steps.pre-release.outputs.release == 'true'
+        run: npm run clean && npm run build
+
+      - name: Deprecate old versions
+        if: steps.pre-release.outputs.release == 'true'
+        run: npm deprecate maclary@"~$(jq --raw-output '.version' package.json)" "no longer supported" || true
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+      - name: Publish development
+        if: steps.pre-release.outputs.release == 'true'
+        run: |
+          npm version --git-tag-version=false $(jq --raw-output '.version' package.json).$(date +%s)-$(git rev-parse --short HEAD)
+          npm publish --tag dev || true
+        env:
+          YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
