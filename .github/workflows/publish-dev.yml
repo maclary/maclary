@@ -27,7 +27,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.pre-release.outputs.release == 'true'
-        uses: yarn --immutable
+        run: yarn --immutable
 
       - name: Compile TypeScript
         if: steps.pre-release.outputs.release == 'true'
