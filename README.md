@@ -1,16 +1,16 @@
 <div align="center">
     <img alt="hairy maclary" src=".github/assets/maclary.png" width="30%"/>
     <h1>Maclary</h1><br/>
-    <i>The prefect Discord bot framework</i><br/>
+    <h3>The prefect Discord bot framework</h3><br/>
     <code>npm install maclary discord.js@dev</code><br/>
-    <code>yarn add maclary discord.js@dev</code/><br/>
-    <code>pnpm add maclary discord.js@dev</code>
+    <code>yarn add maclary discord.js@dev</code><br/>
+    <code>pnpm add maclary discord.js@dev</code><br/>
 </div>
 
 <div align="center">
     <!-- row 1 -->
     <a href="https://github.com/maclary">
-        <img alt="maclary version" src="https://img.shields.io/badge/version-0.1.0-red"/>
+        <img alt="maclary version" src="https://img.shields.io/npm/v/maclary?color=red&label=maclary"/>
     </a>
     <a href="https://npmjs.com/package/maclary">
         <img alt="total downloads" src="https://img.shields.io/npm/dt/maclary"/>
@@ -28,10 +28,10 @@
     </a>
     <a href="https://github.com/maclary/maclary/">
         <img alt="github commit activity" src="https://img.shields.io/github/commit-activity/m/maclary/maclary">
-    </a>
+    </a><br/>
 </div>
 
-# What is Maclary?
+# Description
 
 Maclary is a Discord bot framework intended to make developing bots a lot faster and easier, with built in command and event handling.
 
