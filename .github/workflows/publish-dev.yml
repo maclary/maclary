@@ -11,10 +11,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Install node.js
-        uses: actions/setup-node@v2
+      - name: Install Node.js v16
+        uses: actions/setup-node@v3
         with:
           node-version: 16
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
 
       - name: Check previous released version
         id: pre-release
@@ -25,11 +27,11 @@ jobs:
 
       - name: Install dependencies
         if: steps.pre-release.outputs.release == 'true'
-        run: npm install
+        uses: yarn --immutable
 
       - name: Compile TypeScript
         if: steps.pre-release.outputs.release == 'true'
-        run: npm run clean && npm run build
+        run: yarn clean && yarn build
 
       - name: Deprecate old versions
         if: steps.pre-release.outputs.release == 'true'
@@ -40,7 +42,7 @@ jobs:
       - name: Publish development
         if: steps.pre-release.outputs.release == 'true'
         run: |
-          npm version --git-tag-version=false $(jq --raw-output '.version' package.json).$(date +%s)-$(git rev-parse --short HEAD)
-          npm publish --tag=dev || true
+          yarn version $(jq --raw-output '.version' package.json).$(date +%s)-$(git rev-parse --short HEAD)
+          yarn npm publish --tag dev || true
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
