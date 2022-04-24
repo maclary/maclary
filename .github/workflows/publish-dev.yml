@@ -25,7 +25,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.pre-release.outputs.release == 'true'
-        run: npm ci
+        run: npm install
 
       - name: Compile TypeScript
         if: steps.pre-release.outputs.release == 'true'
