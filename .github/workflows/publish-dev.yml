@@ -6,7 +6,7 @@ jobs:
   npm:
     name: Publish Development
     runs-on: ubuntu-latest
-    if: github.repository_owner = 'maclary'
+    if: github.repository_owner == 'maclary'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
