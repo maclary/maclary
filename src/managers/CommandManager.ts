@@ -231,7 +231,7 @@ export class CommandManager extends MapManager<string, Command> {
         const contents = await loadModule(data, false);
         if (isCommandClass(contents)) commands.push(contents);
         const values = Object.values(contents);
-        values.forEach((v) => commands.push(isCommandClass(v)));
+        values.forEach((v) => isCommandClass(v) && commands.push(v));
 
         return commands.filter((c) => isCommandClass(c)).map((cc) => new cc());
     }
