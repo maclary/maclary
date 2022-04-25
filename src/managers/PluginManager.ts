@@ -7,13 +7,13 @@ export const broadcastReady = Symbol('broadcastReady');
 export const broadcastDestroy = Symbol('broadcastDestroy');
 
 /**
- * The plugin manager. You should never have to create an instance of this class.
+ * The {@link Plugin} manager. You should never have to create an instance of this class.
  */
 export class PluginManager extends SetManager<Plugin> {
     /**
      * Tell the client to use a plugin.
-     * @param plugin {typeof Plugin} The plugin to load.
-     * @param args {...any[]} The arguments to pass to the plugin constructor.
+     * @param plugin The plugin to load.
+     * @param args The arguments to pass to the plugin constructor.
      */
     public use(plugin: typeof Plugin, ...args: any[]): void {
         if (plugin.prototype instanceof Plugin) {

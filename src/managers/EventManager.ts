@@ -8,7 +8,8 @@ import { readdirSync, lstatSync, existsSync } from 'node:fs';
 import type { EventEmitter } from 'node:events';
 
 /**
- * The event manager. You should never have to create an instance of this class.
+ * The {@link Event} manager. You should never have to create an instance of this class.
+ * @extends {SetManager}
  */
 export class EventManager extends SetManager<Event> {
     /**
