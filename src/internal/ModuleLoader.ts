@@ -41,9 +41,8 @@ export async function requireModule(file: ModuleData): Promise<any> {
     return mod;
 }
 
-export async function loadModule(file: ModuleData): Promise<any> {
+export async function loadModule(file: ModuleData, useDefault = true): Promise<any> {
     const mod = await requireModule(file);
-    if (isClass(mod.default)) return mod.default;
-    if (isClass(mod)) return mod;
-    return null;
+    if (mod.default && useDefault) return mod.default;
+    return mod;
 }
