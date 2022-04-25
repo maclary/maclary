@@ -1,6 +1,3 @@
-// @ts-ignore Missing declaration file
-import TwitterEmoji from 'twemoji-parser/dist/lib/regex.js';
-
 /**
  * Regex that matches prefixes.
  * @raw `/^([$-/:-?{-~!"^_`\[\]\w]{1,10})$/`
