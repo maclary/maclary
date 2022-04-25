@@ -22,7 +22,7 @@ jobs:
       - name: Check previous released version
         id: pre-release
         run: |
-          if [[ $(npm view maclary@dev version | grep -e "$(jq --raw-output '.version' package.json)\..*") ]]; \
+          if [[ $(npm view maclary@dev version | grep -e "$(jq --raw-output '.version' package.json)\..*-$(git rev-parse --short HEAD)") ]]; \
           then echo '::set-output name=release::false'; \
           else echo '::set-output name=release::true'; fi
 
@@ -47,3 +47,7 @@ jobs:
           yarn npm publish --tag dev || true
         env:
           YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+      # Workaround to avoid Post Use step failures. See: https://github.com/actions/setup-node/issues/317
+      - run: mkdir -p /home/runner/.cache/yarn/v6
+        continue-on-error: true
