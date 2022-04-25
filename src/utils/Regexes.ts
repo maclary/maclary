@@ -37,12 +37,6 @@ export const UserMention = /^<@(?<id>\d{17,19})>$/;
 export const RoleMention = /^<@&(?<id>\d{17,19})>$/;
 
 /**
- * Regex that matches any Twemoji.
- * @raw {@linkplain https://github.com/twitter/twemoji-parser/blob/master/src/lib/regex.js Twemoji}
- */
-export const Twemoji = TwitterEmoji as RegExp;
-
-/**
  * Regex that matches any custom Discord emoji.
  * @raw `/^(?:<(?<animated>a)?:(?<name>\w{2,32}):)?(?<id>\d{17,21})>?$/`
  * @remark Capture group 1 is whether the emoji is animated, named `animated`
