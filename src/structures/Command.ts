@@ -148,9 +148,15 @@ export abstract class Command extends Base {
         if (this.internalType === Command.InternalType.Group) {
             const commandName =
                 interaction.options.getSubcommandGroup() || interaction.options.getSubcommand();
-            const command = this.options.find((option) => option.name === commandName);
             Reflect.set(interaction.options, '_group', null);
-            if (command instanceof Command) return command.onChatInput(interaction);
+            const command = this.options.find((c) => c.name === commandName);
+
+            if (command instanceof Command) {
+                const result = await command.preconditions.chatInputRun(interaction, command);
+                if (result.error === undefined) return command.onChatInput(interaction);
+                const options = result.error.options as Discord.InteractionReplyOptions;
+                return interaction.reply(options);
+            }
             return undefined;
         }
 
@@ -168,7 +174,14 @@ export abstract class Command extends Base {
         if (this.internalType === Command.InternalType.Group) {
             const single = args.single();
             const command = this.options.find((c) => c.name === single);
-            if (command instanceof Command) return command.onMessage(message, args);
+            // if (command instanceof Command) return command.onMessage(message, args);
+
+            if (command instanceof Command) {
+                const result = await command.preconditions.messageRun(message, command);
+                if (result.error === undefined) return command.onMessage(message, args);
+                const options = result.error.options as Discord.ReplyMessageOptions;
+                return message.reply(options);
+            }
             return undefined;
         }
 

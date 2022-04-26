@@ -2,6 +2,7 @@ import { container } from '../../container';
 import { Event } from '../../structures/Event';
 import { Events } from '../../types/Events';
 import { CustomId } from '../../utils/CustomId';
+import { ReplyError } from '../../errors/ReplyError';
 import type { Command } from '../../structures/Command';
 
 import type { Interaction, InteractionReplyOptions } from 'discord.js';
@@ -32,13 +33,22 @@ export default class OnInteractionCreate extends Event {
     }
 
     private async handleChatInput(interaction: Command.ChatInput): Promise<void> {
-        const { client } = container;
-        const command = client.commands.cache.get(interaction.commandName);
-        if (command === undefined) client.emit(Events.UnknownInteraction, interaction);
-        else {
-            const result = await command.preconditions.chatInputRun(interaction, command);
-            if (result.error === undefined) await command.onChatInput(interaction);
-            else await interaction.reply(result.error.options as InteractionReplyOptions);
+        try {
+            const { client } = container;
+            const command = client.commands.cache.get(interaction.commandName);
+            if (command === undefined) client.emit(Events.UnknownInteraction, interaction);
+            else {
+                const result = await command.preconditions.chatInputRun(interaction, command);
+                if (result.error === undefined) await command.onChatInput(interaction);
+                else await interaction.reply(result.error.options as InteractionReplyOptions);
+            }
+        } catch (error) {
+            const action = interaction.deferred ? 'editReply' : 'reply';
+            if (error instanceof ReplyError) {
+                void interaction[action](error.options as InteractionReplyOptions | string);
+            } else {
+                void interaction[action](`An unknown error occurred while running this command.`);
+            }
         }
     }
 

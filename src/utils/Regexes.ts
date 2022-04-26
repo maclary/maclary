@@ -1,6 +1,3 @@
-// @ts-ignore Missing declaration file
-import TwitterEmoji from 'twemoji-parser/dist/lib/regex.js';
-
 /**
  * Regex that matches prefixes.
  * @raw `/^([$-/:-?{-~!"^_`\[\]\w]{1,10})$/`
@@ -35,12 +32,6 @@ export const UserMention = /^<@(?<id>\d{17,19})>$/;
  * @remark Capture group 1 is the role ID, named `id`
  */
 export const RoleMention = /^<@&(?<id>\d{17,19})>$/;
-
-/**
- * Regex that matches any Twemoji.
- * @raw {@linkplain https://github.com/twitter/twemoji-parser/blob/master/src/lib/regex.js Twemoji}
- */
-export const Twemoji = TwitterEmoji as RegExp;
 
 /**
  * Regex that matches any custom Discord emoji.

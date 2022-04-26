@@ -7,16 +7,24 @@ on:
 
 jobs:
   deploy:
+    name: Generate Documentation
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v2
-        
-      - name: Install Dependencies
-        run: npm install
-        
-      - name: Build Documentation
-        run: npm run clean && npm run docs
+
+      - name: Install Node.js v16
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: yarn --immutable
+
+      - name: Build documentation
+        run: yarn clean && yarn docs
 
       - name: Deploy Github Pages
         uses: peaceiris/actions-gh-pages@v3
