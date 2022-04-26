@@ -50,9 +50,10 @@ export class CommandManager extends MapManager<string, Command> {
         const externalCommands = this.application.commands.cache;
 
         // Filter local commands by interaction kind
-        const localCommands = Array.from(this.cache.values())
-            .filter((c) => c.kinds.includes(Command.Kind.Interaction))
-            .map((c) => c);
+        const localCommands: Command[] = this.filterByKind(
+            Command.Kind.Interaction,
+            Array.from(this.cache.values()),
+        );
 
         // Compare the groups of commands and determine if should patch
         let shouldPatch = externalCommands.size !== localCommands.length;
@@ -146,7 +147,7 @@ export class CommandManager extends MapManager<string, Command> {
                 continue;
             }
 
-            command.category ??= categoryName;
+            command.category ||= categoryName;
             this.cache.set(command.name, command);
         }
     }
@@ -175,6 +176,7 @@ export class CommandManager extends MapManager<string, Command> {
 
         const command = new SubcommandGroup();
         command.internalType = Command.InternalType.Group;
+        command.category ||= categoryName;
         command.options = await this.loadFolderAsCommandOptions(folderPath, categoryName);
         if (cache) this.cache.set(command.name, command);
         return command;
@@ -204,6 +206,7 @@ export class CommandManager extends MapManager<string, Command> {
             if (isFile) promise = this.loadCommandsFromFile(filePath);
             else promise = this.loadFolderAsCommandGroup(itemName, filePath, categoryName);
             options.push(...[await promise].flat());
+            options.forEach((o) => (o.category ||= categoryName));
         }
 
         return options;
@@ -234,5 +237,22 @@ export class CommandManager extends MapManager<string, Command> {
         values.forEach((v) => isCommandClass(v) && commands.push(v));
 
         return commands.filter((c) => isCommandClass(c)).map((cc) => new cc());
+    }
+
+    /**
+     * Filter a collection of commands by a command kind.
+     * @param kind The command kind to filter by.
+     * @param options The list of commands/options.
+     */
+    private filterByKind(kind: Command.Kind, options: any): any[] {
+        return (options ?? []).filter((option: any) => {
+            if (option.internalType === Command.InternalType.Group) {
+                const opts = this.filterByKind(kind, option.options);
+                return opts.length > 0;
+            } else if (option.internalType === Command.InternalType.Command) {
+                return option.kinds.includes(kind);
+            }
+            return true;
+        });
     }
 }
