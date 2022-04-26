@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file.
 
+# [0.3.0](https://github.com/maclary/maclary/compare/0.2.0...0.3.0) - (2022-04-26)
+
+## Bug Fixes
+
+-   Command kinds not working in subcommands ([5eb8a43](https://github.com/maclary/maclary/commit/5eb8a430f1131e9b9e22f6291d00e26c61fbe92e))
+-   Commands array containing booleans ([97d9ea6](https://github.com/maclary/maclary/commit/97d9ea620e33bb0a0070e5684c03a563406b2866))
+-   Subcommands not checking preconditions ([66a6b8f](https://github.com/maclary/maclary/commit/66a6b8ff4401a98385045a1556501e5b4b08d53c))
+-   **Errors:** Missing export for ReplyError ([d391a6f](https://github.com/maclary/maclary/commit/d391a6f2653fad864202cd033ad4c783cba1d38b))
+-   **InteractionCreate:** Not catching ReplyErrors ([8e59794](https://github.com/maclary/maclary/commit/8e5979413d0ad4b1ad2b29505ea813adac1251bd))
+
+## Documentation
+
+-   **Managers:** Improve manager documentation ([6d7acad](https://github.com/maclary/maclary/commit/6d7acadf0dc54e83040be392c96683b03a863583))
+-   Fix badges ([8e0c034](https://github.com/maclary/maclary/commit/8e0c0342f9c305a230cd8748d39d3c2de577d9a1))
+
+## Features
+
+-   Add support for multiple events exported from one file ([f856b4e](https://github.com/maclary/maclary/commit/f856b4ef058b583d691ea1ca8d0d17de82289d8a))
+-   Add support for multiple commands exported from one file ([7d9f058](https://github.com/maclary/maclary/commit/7d9f05845188dd053ec0e0caf91269f8442b3678))
+-   **Preconditions:** Client and user permissions ([eee474b](https://github.com/maclary/maclary/commit/eee474bc34a9dd6746cce2ee73a2f5c5798b2126))
+-   Improve exports ([6cb92fb](https://github.com/maclary/maclary/commit/6cb92fb2577c47b70c5df863e167f7d34dda3b5a))
+
+## Refactor
+
+-   Fix importing missing module ([59fea90](https://github.com/maclary/maclary/commit/59fea90a82ff7e2fd45d1b9f4e0a526d223ffb92))
+-   Remove twemoji ([d2a397d](https://github.com/maclary/maclary/commit/d2a397d4fe6b0ac347cb6dc3f4db34c259a59c02))
+
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
 # [0.2.0](https://github.com/maclary/maclary/compare/0.1.0...0.2.0) - (2022-04-23)
 
 ## Bug Fixes
