@@ -19,6 +19,7 @@
         "clean": "rm -rf dist docs",
         "build": "tsc && gen-esm-wrapper ./dist/index.js ./dist/index.mjs",
         "build:watch": "tsc --watch",
+        "changelog": "git cliff --prepend ./CHANGELOG.md -l -c ./cliff.toml -r ./",
         "prepare": "husky install .github/husky"
     },
     "files": [
