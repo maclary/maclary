@@ -18,9 +18,12 @@ export * from './structures/Precondition';
 export * as Preconditions from './preconditions/index';
 
 // Managers
-export type { CommandManager } from './managers/CommandManager';
-export type { EventManager } from './managers/EventManager';
-export type { PluginManager } from './managers/PluginManager';
+export * from './managers/BaseManager';
+export * from './managers/CommandManager';
+export * from './managers/EventManager';
+export * from './managers/MapManager';
+export * from './managers/PluginManager';
+export * from './managers/SetManager';
 
 // Errors
 export * from './errors';
