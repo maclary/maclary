@@ -29,10 +29,6 @@ All notable changes to this project will be documented in this file.
 -   Fix importing missing module ([59fea90](https://github.com/maclary/maclary/commit/59fea90a82ff7e2fd45d1b9f4e0a526d223ffb92))
 -   Remove twemoji ([d2a397d](https://github.com/maclary/maclary/commit/d2a397d4fe6b0ac347cb6dc3f4db34c259a59c02))
 
-# Changelog
-
-All notable changes to this project will be documented in this file.
-
 # [0.2.0](https://github.com/maclary/maclary/compare/0.1.0...0.2.0) - (2022-04-23)
 
 ## Bug Fixes
