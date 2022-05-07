@@ -1,22 +1,11 @@
-import { z } from 'zod';
-import type * as Discord from 'discord.js';
-
 import { Base } from './Base';
 import { Error } from '../errors';
 import { Precondition, PreconditionsContainer } from './Precondition';
-import { UnsafeCommandOptionsBuilder } from '../builders/command/UnsafeOptions';
 import { CustomId } from '../utils/CustomId';
 import type { Args } from './Args';
 
-import type { CommandOptionsBuilder } from '../builders/command/Options';
-import {
-    validate,
-    typePredicate,
-    namePredicate,
-    descriptionPredicate,
-    kindPredicate,
-    preconditionPredicate,
-} from '../builders/command/Assertions';
+import { z } from 'zod';
+import type * as Discord from 'discord.js';
 
 export interface CommandOptions {
     /**
@@ -45,8 +34,9 @@ export interface CommandOptions {
 
     /**
      * The description for the command.
+     * @default '-'
      */
-    description: string;
+    description?: string;
 
     /**
      * The category this command might belong to.
@@ -98,6 +88,7 @@ export abstract class Command extends Base {
 
     /**
      * The description for the command.
+     * @default '-'
      */
     public description: string;
 
@@ -119,24 +110,32 @@ export abstract class Command extends Base {
      */
     public preconditions = new PreconditionsContainer();
 
-    public constructor(
-        options: CommandOptions | CommandOptionsBuilder | UnsafeCommandOptionsBuilder,
-    ) {
+    public constructor(options: CommandOptions) {
         super();
 
-        if (options instanceof UnsafeCommandOptionsBuilder) options = options.toJSON();
+        this.type = z.nativeEnum(Command.Type).default(Command.Type.ChatInput).parse(options.type);
+        this.description = z.string().default('-').parse(options.description);
+        this.category = z.string().default('').parse(options.category);
+        this.options = z.array(z.any()).default([]).parse(options.options);
 
-        this.type = validate(typePredicate, Command.Type.ChatInput, options.type);
-        this.name = validate(namePredicate, undefined, options.name);
-        this.description = validate(descriptionPredicate, undefined, options.description);
-        this.category = validate(namePredicate, '', options.category);
+        this.kinds = z
+            .array(z.nativeEnum(Command.Kind))
+            .default([Command.Kind.Prefix, Command.Kind.Interaction])
+            .parse(options.kinds);
+        this.name = z
+            .string()
+            .regex(/^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u)
+            .parse(options.name);
+        this.aliases = z
+            .array(z.string().regex(/^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u))
+            .default([])
+            .parse(options.aliases);
 
-        this.kinds = validate(z.array(kindPredicate), [], options.kinds);
-        this.aliases = validate(z.array(namePredicate), [], options.aliases);
-        this.options = validate(z.array(z.any()), [], options.options);
+        z.array(z.instanceof(Precondition as any))
+            .default([])
+            .parse(options.preconditions?.map((p) => p.prototype));
 
-        validate(z.array(preconditionPredicate), [], options.preconditions);
-        options.preconditions?.forEach((p) => this.preconditions.add(p));
+        options.preconditions?.forEach((precondition) => this.preconditions.add(precondition));
     }
 
     /**
