@@ -3,7 +3,7 @@ import { SlashCommandAssertions } from '@discordjs/builders';
 const CustomIdDivider = '🎗🎞🖼';
 
 export class CustomId extends null {
-    public static create(commandNames: [], options: Record<string, unknown> = {}): string {
+    public static create(commandNames: string[], options: Record<string, unknown> = {}): string {
         commandNames.some((c) => SlashCommandAssertions.validateName(c));
 
         const commandsString = JSON.stringify(commandNames);
