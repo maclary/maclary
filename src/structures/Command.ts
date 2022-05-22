@@ -222,7 +222,7 @@ export abstract class Command extends Base {
             return undefined;
         }
 
-        throw new Error(`Command ${this.name} is missing its onButton method`);
+        throw new Error('COMMAND_MISSING_METHOD', this.name, 'onButton');
     }
 
     /**
@@ -239,7 +239,7 @@ export abstract class Command extends Base {
             return undefined;
         }
 
-        throw new Error(`Command ${this.name} is missing its onSelectMenu method`);
+        throw new Error('COMMAND_MISSING_METHOD', this.name, 'onSelectMenu');
     }
 
     /**
@@ -256,7 +256,7 @@ export abstract class Command extends Base {
             return undefined;
         }
 
-        throw new Error(`Command ${this.name} is missing its onModalSubmit method`);
+        throw new Error('COMMAND_MISSING_METHOD', this.name, 'onModalSubmit');
     }
 }
 
