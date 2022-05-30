@@ -4,22 +4,22 @@ import { Precondition, PreconditionsContainer } from './Precondition';
 import { CustomId } from '../utils/CustomId';
 import type { Args } from './Args';
 
-import { z } from 'zod';
-import type * as Discord from 'discord.js';
+import Joi from 'joi';
+import * as Discord from 'discord.js';
 
 export interface CommandOptions {
     /**
      * The type of the command, one of the the command or command option types.
      * @default Command.Type.ChatInput
      */
-    type?: Command.Type | Command.OptionType;
+    type: Command.Type | Command.OptionType;
 
     /**
      * What kinds of command this is, sets wether or not this command is
      * a prefix command, interaction command, or both.
      * @default [Command.Kind.Prefix, Command.Kind.Interaction]
      */
-    kinds?: Command.Kind[];
+    kinds: Command.Kind[];
 
     /**
      * The name of the command.
@@ -48,7 +48,7 @@ export interface CommandOptions {
      * The options for the command.
      * @default []
      */
-    options?: Array<Command | CommandOptions | Discord.ApplicationCommandOptionData>;
+    options?: (Command | CommandOptions | Discord.ApplicationCommandOptionData)[];
 
     /**
      * The preconditions for the command.
@@ -113,29 +113,37 @@ export abstract class Command extends Base {
     public constructor(options: CommandOptions) {
         super();
 
-        this.type = z.nativeEnum(Command.Type).default(Command.Type.ChatInput).parse(options.type);
-        this.description = z.string().default('-').parse(options.description);
-        this.category = z.string().default('').parse(options.category);
-        this.options = z.array(z.any()).default([]).parse(options.options);
+        const schema = Joi.object({
+            type: Joi.string()
+                .valid(...Object.values(Command.Type))
+                .required(),
+            name: Joi.string()
+                .regex(/^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u)
+                .required(),
+            aliases: Joi.array()
+                .items(Joi.ref('name') as any)
+                .default([]),
+            description: Joi.string().default('-'),
+            category: Joi.string().optional(),
+            kinds: Joi.array()
+                .items(Joi.string().valid(...Object.values(Command.Kind)))
+                .default([]),
+            options: Joi.array().items(Joi.any()).default([]),
+            preconditions: Joi.array().items(Joi.object().instance(Precondition)).default([]),
+        });
 
-        this.kinds = z
-            .array(z.nativeEnum(Command.Kind))
-            .default([Command.Kind.Prefix, Command.Kind.Interaction])
-            .parse(options.kinds);
-        this.name = z
-            .string()
-            .regex(/^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u)
-            .parse(options.name);
-        this.aliases = z
-            .array(z.string().regex(/^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u))
-            .default([])
-            .parse(options.aliases);
+        const { error, value } = schema.validate(options);
+        if (error !== undefined) throw error;
 
-        z.array(z.instanceof(Precondition as any))
-            .default([])
-            .parse(options.preconditions?.map((p) => p.prototype));
+        this.type = value.type;
+        this.name = value.name;
+        this.aliases = value.aliases;
+        this.description = value.description;
+        this.category = value.category;
+        this.kinds = value.kinds;
+        this.options = value.options;
 
-        options.preconditions?.forEach((precondition) => this.preconditions.add(precondition));
+        value.preconditions.forEach((p: any) => this.preconditions.add(p));
     }
 
     /**
@@ -271,30 +279,12 @@ export namespace Command {
     export type Button = Discord.ButtonInteraction;
     export type SelectMenu = Discord.SelectMenuInteraction;
     export type ModalSubmit = Discord.ModalSubmitInteraction;
-
-    export enum Type {
-        ChatInput = 1,
-        User,
-        Message,
-    }
+    export import Type = Discord.ApplicationCommandType;
+    export import OptionType = Discord.ApplicationCommandOptionType;
 
     export enum InternalType {
         Command = 1,
         Group,
-    }
-
-    export enum OptionType {
-        Subcommand = 1,
-        SubcommandGroup,
-        String,
-        Integer,
-        Boolean,
-        User,
-        Channel,
-        Role,
-        Mentionable,
-        Number,
-        Attachment,
     }
 
     export enum Kind {

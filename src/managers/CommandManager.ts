@@ -84,7 +84,7 @@ export class CommandManager extends MapManager<string, Command> {
     public async load(): Promise<CommandManager> {
         this.container.logger.info('Loading commands...');
         for (const directory of this.directories) {
-            await this.loadFolderAsCategory(directory, '');
+            await this.loadFolderAsCategory(directory);
         }
         this.container.logger.info(`Loaded ${this.cache.size} commands`);
         return this;
@@ -95,7 +95,7 @@ export class CommandManager extends MapManager<string, Command> {
      * @param folderPath The path to the folder to load commands from.
      * @param categoryName Set each command to this category.
      */
-    private async loadFolderAsCategory(folderPath: string, categoryName: string): Promise<void> {
+    private async loadFolderAsCategory(folderPath: string, categoryName?: string): Promise<void> {
         const folderExists = existsSync(folderPath);
         const message = `Cannot load commands from ${folderPath} because it does not exist.`;
         if (!folderExists) return void this.container.client.emit(Events.MaclaryDebug, message);
@@ -136,7 +136,7 @@ export class CommandManager extends MapManager<string, Command> {
      * @param filePath The path to the file to load.
      * @param categoryName Set the category of the command to this.
      */
-    private async loadFileAsCommand(filePath: string, categoryName: string): Promise<void> {
+    private async loadFileAsCommand(filePath: string, categoryName?: string): Promise<void> {
         const commands = await this.loadCommandsFromFile(filePath);
         if (commands.length === 0) return;
 
@@ -162,12 +162,14 @@ export class CommandManager extends MapManager<string, Command> {
     private async loadFolderAsCommandGroup(
         itemName: string,
         folderPath: string,
-        categoryName: string,
+        categoryName: string | undefined,
         cache = false,
     ): Promise<Command> {
         class SubcommandGroup extends Command {
             public constructor() {
                 super({
+                    type: Command.Type.ChatInput,
+                    kinds: [Command.Kind.Interaction, Command.Kind.Prefix],
                     name: itemName,
                     category: categoryName,
                 });
@@ -189,7 +191,7 @@ export class CommandManager extends MapManager<string, Command> {
      */
     private async loadFolderAsCommandOptions(
         folderPath: string,
-        categoryName: string,
+        categoryName?: string,
     ): Promise<Command[]> {
         const options = [];
 

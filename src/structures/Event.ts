@@ -1,8 +1,8 @@
 import { Base } from './Base';
 import { Error } from '../errors';
 
+import Joi from 'joi';
 import { EventEmitter } from 'node:events';
-import { z } from 'zod';
 
 export interface EventOptions {
     /**
@@ -45,17 +45,18 @@ export abstract class Event extends Base {
     public constructor(options: EventOptions) {
         super();
 
-        const parsed = z
-            .object({
-                name: z.string(),
-                emitter: z.instanceof(EventEmitter),
-                once: z.boolean().default(false),
-            })
-            .parse(options);
+        const schema = Joi.object({
+            name: Joi.string().required(),
+            emitter: Joi.object().instance(EventEmitter).required(),
+            once: Joi.boolean().default(false),
+        });
 
-        this.name = parsed.name;
-        this.emitter = parsed.emitter;
-        this.once = parsed.once;
+        const { error, value } = schema.validate(options);
+        if (error !== undefined) throw error;
+
+        this.name = value.name;
+        this.emitter = value.emitter;
+        this.once = value.once;
     }
 
     /**

@@ -12,7 +12,7 @@ import { getRootData } from '../internal/RootScanner';
 import { Prefix as PrefixRegex, Snowflake as SnowflakeRegex } from '../utils/Regexes';
 
 import { Client, type Snowflake, type ClientOptions } from 'discord.js';
-import { z } from 'zod';
+import Joi from 'joi';
 
 export interface MaclaryClientOptions {
     /**
@@ -146,16 +146,15 @@ export class MaclaryClient extends Client {
     }
 
     private validateOptions(): void {
-        const prefixes = z.union([
-            z.string().regex(PrefixRegex),
-            z.array(z.string().regex(PrefixRegex)),
-        ]);
+        const schema = Joi.object({
+            logger: Joi.any().optional(),
+            defaultPrefix: Joi.string().regex(PrefixRegex).required(),
+            developmentPrefix: Joi.string().regex(PrefixRegex).required(),
+            developmentGuildId: Joi.string().regex(SnowflakeRegex).required(),
+        }).unknown();
 
-        prefixes.parse(this.options.defaultPrefix);
-        prefixes.parse(this.options.developmentPrefix);
-
-        const snowflake = z.string().regex(SnowflakeRegex);
-        snowflake.parse(this.options.developmentGuildId);
+        const { error } = schema.validate(this.options);
+        if (error) throw error;
     }
 }
 
