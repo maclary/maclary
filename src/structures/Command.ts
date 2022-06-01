@@ -1,7 +1,6 @@
 import { Base } from './Base';
 import { Error } from '../errors';
 import { Precondition, PreconditionsContainer } from './Precondition';
-import { CustomId } from '../utils/CustomId';
 import type { Args } from './Args';
 
 import Joi from 'joi';
@@ -115,7 +114,11 @@ export abstract class Command extends Base {
                 .regex(/^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u)
                 .required(),
             aliases: Joi.array()
-                .items(Joi.ref('name') as any)
+                .items(
+                    Joi.string()
+                        .regex(/^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u)
+                        .required(),
+                )
                 .default([]),
             description: Joi.string().default('-'),
             category: Joi.string().optional(),
@@ -123,7 +126,7 @@ export abstract class Command extends Base {
                 .items(Joi.string().valid(...Object.values(Command.Kind)))
                 .default([]),
             options: Joi.array().items(Joi.any()).default([]),
-            preconditions: Joi.array().items(Joi.object().instance(Precondition)).default([]),
+            preconditions: Joi.array().items(Joi.any()).default([]),
         });
 
         const { error, value } = schema.validate(options);
@@ -209,57 +212,6 @@ export abstract class Command extends Base {
     public onMessageContextMenu(_: Command.MessageContextMenu): Promise<unknown> {
         throw new Error('COMMAND_MISSING_METHOD', this.name, 'onMessageContextMenu');
     }
-
-    /**
-     * When a button interaction is received for this command.
-     * @param button {Command.Button} The button interaction
-     * @returns {Promise<unknown>}
-     * @abstract
-     */
-    public async onButton(button: Command.Button): Promise<unknown> {
-        if (this.internalType === Command.InternalType.Group) {
-            const [commandNames] = CustomId.parse(button.customId);
-            const command = this.options.find((c) => commandNames.includes(c.name));
-            if (command instanceof Command) return command.onButton(button);
-            return undefined;
-        }
-
-        throw new Error('COMMAND_MISSING_METHOD', this.name, 'onButton');
-    }
-
-    /**
-     * When a select menu interaction is received for this command.
-     * @param menu {Command.ModalSubmit} The modal submit interaction
-     * @returns {Promise<unknown>}
-     * @abstract
-     */
-    public async onSelectMenu(menu: Command.SelectMenu): Promise<unknown> {
-        if (this.internalType === Command.InternalType.Group) {
-            const [commandNames] = CustomId.parse(menu.customId);
-            const command = this.options.find((c) => commandNames.includes(c.name));
-            if (command instanceof Command) return command.onSelectMenu(menu);
-            return undefined;
-        }
-
-        throw new Error('COMMAND_MISSING_METHOD', this.name, 'onSelectMenu');
-    }
-
-    /**
-     * When a modal submit interaction is received for this command.
-     * @param modal {Command.ModalSubmit} The modal interaction
-     * @returns {Promise<unknown>}
-     * @abstract
-     */
-    public async onModalSubmit(modal: Command.ModalSubmit): Promise<unknown> {
-        if (this.internalType === Command.InternalType.Group) {
-            const [commandNames] = CustomId.parse(modal.customId);
-            const command = this.options.find((c) => commandNames.includes(c.name));
-            if (command instanceof Command) return command.onModalSubmit(modal);
-            return undefined;
-        }
-
-        throw new Error('COMMAND_MISSING_METHOD', this.name, 'onModalSubmit');
-    }
 }
 
 export namespace Command {
@@ -270,9 +222,6 @@ export namespace Command {
     export type MessageContextMenu = Discord.MessageContextMenuCommandInteraction;
     export type ContextMenu = UserContextMenu | MessageContextMenu;
     export type Message = Discord.Message;
-    export type Button = Discord.ButtonInteraction;
-    export type SelectMenu = Discord.SelectMenuInteraction;
-    export type ModalSubmit = Discord.ModalSubmitInteraction;
     export import Type = Discord.ApplicationCommandType;
     export import OptionType = Discord.ApplicationCommandOptionType;
 

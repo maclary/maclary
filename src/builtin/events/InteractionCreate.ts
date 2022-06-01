@@ -1,11 +1,9 @@
+import type { InteractionReplyOptions, Interaction } from 'discord.js';
 import { container } from '../../container';
+import type { Command } from '../../structures/Command';
 import { Event } from '../../structures/Event';
 import { Events } from '../../types/Events';
-import { CustomId } from '../../utils/CustomId';
 import { ReplyError } from '../../errors/ReplyError';
-import type { Command } from '../../structures/Command';
-
-import type { Interaction, InteractionReplyOptions } from 'discord.js';
 
 export default class OnInteractionCreate extends Event {
     public constructor() {
@@ -17,84 +15,102 @@ export default class OnInteractionCreate extends Event {
     }
 
     public override async handle(interaction: Interaction): Promise<void> {
-        if (interaction.isChatInputCommand()) {
-            return this.handleChatInput(interaction);
-        } else if (interaction.isUserContextMenuCommand()) {
-            return this.handleUserContextMenu(interaction);
-        } else if (interaction.isMessageContextMenuCommand()) {
-            return this.handleMessageContextMenu(interaction);
-        } else if (interaction.isButton()) {
-            return this.handleButton(interaction);
-        } else if (interaction.isSelectMenu()) {
-            return this.handleSelectMenu(interaction);
-        } else if (interaction.isModalSubmit()) {
-            return this.handleModalSubmit(interaction);
+        if (interaction.isCommand()) {
+            // If the interaction is a command, handle it as so
+            if (interaction.isChatInputCommand()) {
+                return this.handleChatInput(interaction);
+            } else if (interaction.isUserContextMenuCommand()) {
+                return this.handleUserContextMenu(interaction);
+            } else if (interaction.isMessageContextMenuCommand()) {
+                return this.handleMessageContextMenu(interaction);
+            }
+        } else if (interaction.isMessageComponent()) {
+            // If the interaction is a message component, handle it as so
+            const { client } = this.container;
+            const [name] = this.parseCustomId(interaction.customId);
+            const action = client.components.cache.get(name);
+
+            if (action === undefined)
+                return void setTimeout(async () => {
+                    if (interaction.deferred || interaction.replied) return;
+                    await interaction.reply({
+                        content: `Action ${name} has not been implemented yet.`,
+                        ephemeral: true,
+                    });
+                    client.emit(Events.UnknownInteraction, interaction);
+                }, 2500);
+
+            if (interaction.isButton()) {
+                return void action.onButton(interaction);
+            } else if (interaction.isSelectMenu()) {
+                return void action.onSelectMenu(interaction);
+            } else if (interaction.isModalSubmit()) {
+                return void action.onModalSubmit(interaction);
+            }
+        }
+    }
+
+    /**
+     * Parse the customId of the interaction into its name and id.
+     * @param customId The custom ID of the component
+     */
+    private parseCustomId(customId: string): [string, string] {
+        const splits = customId.split(',');
+        return [splits.shift() as string, splits.join(',')];
+    }
+
+    /**
+     * Handle a command interaction.
+     * @param interaction The interaction to handle
+     * @param preconditionsRun The name of the preconditions run method
+     * @param commandRun The name of the command run method
+     */
+    private async handleCommand(
+        interaction: Command.ChatInput | Command.UserContextMenu | Command.MessageContextMenu,
+        preconditionsRun: 'chatInputRun' | 'contextMenuRun',
+        commandRun: 'onChatInput' | 'onUserContextMenu' | 'onMessageContextMenu',
+    ): Promise<void> {
+        try {
+            const { client } = this.container;
+            const name = interaction.commandName;
+            const command = client.commands.cache.get(name);
+
+            if (command === undefined) {
+                await interaction.reply({
+                    content: `Command ${name} has not been implemented yet.`,
+                    ephemeral: true,
+                });
+                return void client.emit(Events.UnknownInteraction, interaction);
+            }
+
+            const result = await command.preconditions[preconditionsRun](
+                interaction as any,
+                command,
+            );
+            if (result.error === undefined) await command[commandRun](interaction as any);
+        } catch (error) {
+            const action = interaction.deferred || interaction.replied ? 'editReply' : 'reply';
+
+            if (error instanceof ReplyError)
+                return void interaction[action](error.options as InteractionReplyOptions | string);
+
+            await interaction[action]({
+                content: 'An unknown error has occurred.',
+                ephemeral: true,
+            });
+            throw error;
         }
     }
 
     private async handleChatInput(interaction: Command.ChatInput): Promise<void> {
-        try {
-            const { client } = container;
-            const command = client.commands.cache.get(interaction.commandName);
-            if (command === undefined) client.emit(Events.UnknownInteraction, interaction);
-            else {
-                const result = await command.preconditions.chatInputRun(interaction, command);
-                if (result.error === undefined) await command.onChatInput(interaction);
-                else await interaction.reply(result.error.options as InteractionReplyOptions);
-            }
-        } catch (error) {
-            const action = interaction.deferred ? 'editReply' : 'reply';
-            if (error instanceof ReplyError) {
-                void interaction[action](error.options as InteractionReplyOptions | string);
-            } else {
-                void interaction[action](`An unknown error occurred while running this command.`);
-            }
-        }
+        return this.handleCommand(interaction, 'chatInputRun', 'onChatInput');
     }
 
     private async handleUserContextMenu(interaction: Command.UserContextMenu): Promise<void> {
-        const { client } = container;
-        const command = client.commands.cache.get(interaction.commandName);
-        if (command === undefined) client.emit(Events.UnknownInteraction, interaction);
-        else {
-            const result = await command.preconditions.contextMenuRun(interaction, command);
-            if (result.error === undefined) await command.onUserContextMenu(interaction);
-            else await interaction.reply(result.error.options as InteractionReplyOptions);
-        }
+        return this.handleCommand(interaction, 'contextMenuRun', 'onUserContextMenu');
     }
 
     private async handleMessageContextMenu(interaction: Command.MessageContextMenu): Promise<void> {
-        const { client } = container;
-        const command = client.commands.cache.get(interaction.commandName);
-        if (command === undefined) client.emit(Events.UnknownInteraction, interaction);
-        else {
-            const result = await command.preconditions.contextMenuRun(interaction, command);
-            if (result.error === undefined) await command.onMessageContextMenu(interaction);
-            else await interaction.reply(result.error.options as InteractionReplyOptions);
-        }
-    }
-
-    private async handleButton(interaction: Command.Button): Promise<void> {
-        const { client } = container;
-        const customId = CustomId.parse(interaction.customId);
-        const command = client.commands.cache.get(customId[0][0]);
-        if (command === undefined) client.emit(Events.UnknownInteraction, interaction);
-        else await command.onButton(interaction);
-    }
-
-    private async handleSelectMenu(interaction: Command.SelectMenu): Promise<void> {
-        const { client } = container;
-        const customId = CustomId.parse(interaction.customId);
-        const command = client.commands.cache.get(customId[0][0]);
-        if (command === undefined) client.emit(Events.UnknownInteraction, interaction);
-        else await command.onSelectMenu(interaction);
-    }
-
-    private async handleModalSubmit(interaction: Command.ModalSubmit): Promise<void> {
-        const { client } = container;
-        const customId = CustomId.parse(interaction.customId);
-        const command = client.commands.cache.get(customId[0][0]);
-        if (command === undefined) client.emit(Events.UnknownInteraction, interaction);
-        else await command.onModalSubmit(interaction);
+        return this.handleCommand(interaction, 'contextMenuRun', 'onMessageContextMenu');
     }
 }

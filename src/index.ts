@@ -12,6 +12,7 @@ export * from './structures/Args';
 export * from './structures/Base';
 export * from './structures/Client';
 export * from './structures/Command';
+export * from './structures/Component';
 export * from './structures/Event';
 export * from './structures/Plugin';
 export * from './structures/Precondition';
@@ -20,6 +21,7 @@ export * as Preconditions from './preconditions/index';
 // Managers
 export * from './managers/BaseManager';
 export * from './managers/CommandManager';
+export * from './managers/ComponentManager';
 export * from './managers/EventManager';
 export * from './managers/MapManager';
 export * from './managers/PluginManager';
@@ -31,6 +33,5 @@ export * from './errors';
 // Types
 export { Events } from './types/Events';
 
-// Util
-export * from './utils/CustomId';
+// Utils
 export * as Regexes from './utils/Regexes';

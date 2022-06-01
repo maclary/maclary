@@ -1,6 +1,7 @@
 import { type Container, container } from '../container';
 import { Error } from '../errors';
 import { CommandManager } from '../managers/CommandManager';
+import { ComponentManager } from '../managers/ComponentManager';
 import { EventManager } from '../managers/EventManager';
 import {
     PluginManager,
@@ -50,6 +51,11 @@ export class MaclaryClient extends Client {
     public readonly commands: CommandManager;
 
     /**
+     * The clients {@link ComponentManager}.
+     */
+    public readonly components: ComponentManager;
+
+    /**
      * The clients {@link PluginManager}.
      */
     public readonly plugins: PluginManager;
@@ -77,6 +83,7 @@ export class MaclaryClient extends Client {
 
         this.events = new EventManager();
         this.commands = new CommandManager();
+        this.components = new ComponentManager();
         this.plugins = new PluginManager();
 
         const logger = options.logger || console;
@@ -126,6 +133,7 @@ export class MaclaryClient extends Client {
         for (const promise of [
             () => this.events.load().then((e) => e.patch()),
             () => this.commands.load(),
+            () => this.components.load(),
             () => this.plugins[broadcastPreparing](),
         ])
             await promise();
