@@ -55,7 +55,7 @@ export class MaclaryClient extends Client {
     public readonly plugins: PluginManager;
 
     /**
-     * The base directory, used to find default {@link CommandManager} and{@link EventManager} directories.
+     * The base directory, used to find default {@link CommandManager} and {@link EventManager} directories.
      */
     public get baseDirectory(): string {
         return getRootData().root;
@@ -94,6 +94,7 @@ export class MaclaryClient extends Client {
         }
 
         this.validateOptions();
+
         await this.preparing();
         await super.login(token);
         await this.ready();
@@ -118,6 +119,9 @@ export class MaclaryClient extends Client {
         return this.login(process.env.__DISCORD_TOKEN__ as string);
     }
 
+    /**
+     * Run all plugins on preparing method.
+     */
     private async preparing(): Promise<void> {
         for (const promise of [
             () => this.events.load().then((e) => e.patch()),
@@ -127,8 +131,13 @@ export class MaclaryClient extends Client {
             await promise();
     }
 
+    /**
+     * Run all plugins on ready method.
+     */
     private async ready(): Promise<void> {
         if (process.env.MACLARY_ENV === 'development') {
+            // If in development mode, set the commands
+            // application to the development guild
             if (this.shard === null) {
                 this.options.defaultPrefix = this.options.developmentPrefix;
                 this.commands.application = await this.guilds.fetch(

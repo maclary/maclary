@@ -38,7 +38,6 @@ export abstract class Event extends Base {
 
     /**
      * Whether ot not this handler will be unloaded after it has been called.
-     * @default false
      */
     public once: boolean;
 

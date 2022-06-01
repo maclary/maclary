@@ -31,6 +31,10 @@ export abstract class Precondition extends Base {
 export class PreconditionsContainer extends Base {
     private entries: Precondition[] = [];
 
+    /**
+     * Add a precondition to the container.
+     * @param Class Precondition class
+     */
     public add(Class: typeof Precondition) {
         if (Class.prototype instanceof Precondition) {
             // @ts-ignore Fix abstract class
@@ -39,6 +43,11 @@ export class PreconditionsContainer extends Base {
         }
     }
 
+    /**
+     * Run the preconditions for a message.
+     * @param message Message object
+     * @param command Command object
+     */
     public async messageRun(message: Command.Message, command: Command): Promise<Result> {
         for (const entrie of this.entries) {
             if (entrie.messageRun) {
@@ -50,6 +59,11 @@ export class PreconditionsContainer extends Base {
         return Precondition.prototype.ok();
     }
 
+    /**
+     * Run the preconditions for a chat input.
+     * @param interaction Interaction object
+     * @param command Command object
+     */
     public async chatInputRun(interaction: Command.ChatInput, command: Command): Promise<Result> {
         for (const entrie of this.entries) {
             if (entrie.chatInputRun) {
@@ -61,6 +75,11 @@ export class PreconditionsContainer extends Base {
         return Precondition.prototype.ok();
     }
 
+    /**
+     * Run the preconditions for a context menu.
+     * @param interaction Interaction object
+     * @param command Command object
+     */
     public async contextMenuRun(
         interaction: Command.ContextMenu,
         command: Command,

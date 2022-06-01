@@ -63,15 +63,14 @@ export interface CommandOptions {
 export abstract class Command extends Base {
     /**
      * The type of the command, one of the the command or command option types.
-     * @default Command.Type.ChatInput
      */
     public type: Command.Type | Command.OptionType;
+
     public internalType: Command.InternalType = Command.InternalType.Command;
 
     /**
      * What kinds of command this is, sets wether or not this command is
      * a prefix command, interaction command, or both.
-     * @default [Command.Kind.Prefix, Command.Kind.Interaction]
      */
     public kinds: Command.Kind[];
 
@@ -82,31 +81,26 @@ export abstract class Command extends Base {
 
     /**
      * Alais command names for this command, only works with prefix commands.
-     * @default []
      */
     public aliases: string[];
 
     /**
      * The description for the command.
-     * @default '-'
      */
     public description: string;
 
     /**
      * The category this command might belong to.
-     * @default ''
      */
     public category: string | undefined;
 
     /**
      * The options for the command.
-     * @default []
      */
     public options: Array<Command | CommandOptions | Discord.ApplicationCommandOptionData>;
 
     /**
      * The preconditions for the command.
-     * @default PreconditionsContainer
      */
     public preconditions = new PreconditionsContainer();
 
