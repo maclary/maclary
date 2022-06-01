@@ -13,6 +13,8 @@ const Messages = {
         `Component ${name} is missing its ${method} method.`,
     EVENT_MISSING_METHOD: (name: string, method: string) =>
         `Event ${name} is missing its ${method} method.`,
+
+    COMMAND_NOT_IMPLEMENTED: (name: string) => `Command ${name} has not been implemented yet.`,
 };
 
 for (const [key, val] of Object.entries(Messages)) {

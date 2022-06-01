@@ -1,9 +1,10 @@
-import type { InteractionReplyOptions, Interaction } from 'discord.js';
+import type { InteractionReplyOptions, Interaction, CommandInteraction } from 'discord.js';
 import { container } from '../../container';
 import type { Command } from '../../structures/Command';
 import { Event } from '../../structures/Event';
 import { Events } from '../../types/Events';
 import { ReplyError } from '../../errors/ReplyError';
+import { Error } from '../../errors';
 
 export default class OnInteractionCreate extends Event {
     public constructor() {
@@ -16,47 +17,22 @@ export default class OnInteractionCreate extends Event {
 
     public override async handle(interaction: Interaction): Promise<void> {
         if (interaction.isCommand()) {
-            // If the interaction is a command, handle it as so
-            if (interaction.isChatInputCommand()) {
-                return this.handleChatInput(interaction);
-            } else if (interaction.isUserContextMenuCommand()) {
+            if (interaction.isChatInputCommand()) return this.handleChatInput(interaction);
+            else if (interaction.isUserContextMenuCommand())
                 return this.handleUserContextMenu(interaction);
-            } else if (interaction.isMessageContextMenuCommand()) {
+            else if (interaction.isMessageContextMenuCommand())
                 return this.handleMessageContextMenu(interaction);
-            }
         } else if (interaction.isMessageComponent()) {
-            // If the interaction is a message component, handle it as so
             const { client } = this.container;
-            const [name] = this.parseCustomId(interaction.customId);
+            const name = interaction.customId.split(',')[0];
             const action = client.components.cache.get(name);
 
-            if (action === undefined)
-                return void setTimeout(async () => {
-                    if (interaction.deferred || interaction.replied) return;
-                    await interaction.reply({
-                        content: `Action ${name} has not been implemented yet.`,
-                        ephemeral: true,
-                    });
-                    client.emit(Events.UnknownInteraction, interaction);
-                }, 2500);
-
-            if (interaction.isButton()) {
-                return void action.onButton(interaction);
-            } else if (interaction.isSelectMenu()) {
-                return void action.onSelectMenu(interaction);
-            } else if (interaction.isModalSubmit()) {
-                return void action.onModalSubmit(interaction);
+            if (action !== undefined) {
+                if (interaction.isButton()) return void action.onButton(interaction);
+                else if (interaction.isSelectMenu()) return void action.onSelectMenu(interaction);
+                else if (interaction.isModalSubmit()) return void action.onModalSubmit(interaction);
             }
         }
-    }
-
-    /**
-     * Parse the customId of the interaction into its name and id.
-     * @param customId The custom ID of the component
-     */
-    private parseCustomId(customId: string): [string, string] {
-        const splits = customId.split(',');
-        return [splits.shift() as string, splits.join(',')];
     }
 
     /**
@@ -66,21 +42,21 @@ export default class OnInteractionCreate extends Event {
      * @param commandRun The name of the command run method
      */
     private async handleCommand(
-        interaction: Command.ChatInput | Command.UserContextMenu | Command.MessageContextMenu,
+        interaction: CommandInteraction,
         preconditionsRun: 'chatInputRun' | 'contextMenuRun',
         commandRun: 'onChatInput' | 'onUserContextMenu' | 'onMessageContextMenu',
     ): Promise<void> {
-        try {
-            const { client } = this.container;
-            const name = interaction.commandName;
-            const command = client.commands.cache.get(name);
+        const { client } = this.container;
+        const name = interaction.commandName;
+        const command = client.commands.cache.get(name);
 
+        try {
             if (command === undefined) {
                 await interaction.reply({
                     content: `Command ${name} has not been implemented yet.`,
                     ephemeral: true,
                 });
-                return void client.emit(Events.UnknownInteraction, interaction);
+                throw new Error('COMMAND_NOT_IMPLEMENTED', name);
             }
 
             const result = await command.preconditions[preconditionsRun](
