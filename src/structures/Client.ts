@@ -143,7 +143,7 @@ export class MaclaryClient extends Client {
      * Run all plugins on ready method.
      */
     private async ready(): Promise<void> {
-        if (process.env.MACLARY_ENV === 'development') {
+        if (process.env.NODE_ENV === 'development') {
             // If in development mode, set the commands
             // application to the development guild
             if (this.shard === null) {
