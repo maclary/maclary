@@ -1,4 +1,10 @@
-import type { InteractionReplyOptions, Interaction, CommandInteraction } from 'discord.js';
+import {
+    InteractionReplyOptions,
+    Interaction,
+    CommandInteraction,
+    InteractionType,
+    MessageComponentInteraction,
+} from 'discord.js';
 import { container } from '../../container';
 import type { Command } from '../../structures/Command';
 import { Event } from '../../structures/Event';
@@ -16,21 +22,27 @@ export default class OnInteractionCreate extends Event {
     }
 
     public override async handle(interaction: Interaction): Promise<void> {
-        if (interaction.isCommand()) {
-            if (interaction.isChatInputCommand()) return this.handleChatInput(interaction);
-            else if (interaction.isUserContextMenuCommand())
+        if (interaction.type === InteractionType.ApplicationCommand) {
+            if (interaction.isChatInputCommand()) {
+                return this.handleChatInput(interaction);
+            } else if (interaction.isUserContextMenuCommand()) {
                 return this.handleUserContextMenu(interaction);
-            else if (interaction.isMessageContextMenuCommand())
+            } else if (interaction.isMessageContextMenuCommand()) {
                 return this.handleMessageContextMenu(interaction);
-        } else if (interaction.isMessageComponent()) {
+            }
+        } else if (interaction.type === InteractionType.MessageComponent) {
             const { client } = this.container;
-            const name = interaction.customId.split(',')[0];
+            const name = (interaction as MessageComponentInteraction).customId.split(',')[0];
             const action = client.components.cache.get(name);
 
             if (action !== undefined) {
-                if (interaction.isButton()) return void action.onButton(interaction);
-                else if (interaction.isSelectMenu()) return void action.onSelectMenu(interaction);
-                else if (interaction.isModalSubmit()) return void action.onModalSubmit(interaction);
+                if (interaction.isButton()) {
+                    return void action.onButton(interaction);
+                } else if (interaction.isSelectMenu()) {
+                    return void action.onSelectMenu(interaction);
+                } else if (interaction.isModalSubmit()) {
+                    return void action.onModalSubmit(interaction);
+                }
             }
         }
     }
