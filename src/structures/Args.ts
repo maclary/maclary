@@ -9,6 +9,7 @@ export class Args extends LArgs {
      * Get the remaining arguments as a string.
      */
     public rest(): string {
+        // Lexure does not have a `rest` method, so we have to do this ourselves
         return joinTokens(this.many());
     }
 }

@@ -32,18 +32,23 @@ export default class OnMessageCreate extends Event {
         if (message.author.bot || message.system) return;
         if (!client.isReady()) return;
 
-        const mention = `<@!${client.user.id}>`;
-        if (message.cleanContent === mention) client.emit(Events.ClientMention, message);
+        const MentionRegex = new RegExp(`^<@!?${client.user.id}>$`, 'g');
+        if (message.content.match(MentionRegex)) client.emit(Events.ClientMention, message);
+
+        // Format all prefixes for regex
+        const prefixes = [
+            [client.options.defaultPrefix].flat().map((p) => p.replace(/([^a-zA-Z0-9])/g, '\\$1')),
+            `${MentionRegex.source.slice(1, -1)} ?`,
+        ].flat();
 
         // Verify the message starts with one of the prefixes
-        const prefixes = [client.options.defaultPrefix].flat();
-        const prefix = prefixes.find((p) =>
-            typeof p === 'string' ? message.content.startsWith(p) : null,
-        );
-        if (!prefix) return;
+        const PrefixRegex = new RegExp(`^(${prefixes.join('|')})`, 'g');
+        const prefixArray = message.content.match(PrefixRegex);
+        if (!prefixArray) return;
+        const prefix = prefixArray[0].trim();
 
         // Parse the command name and args
-        lexer.setInput(message.cleanContent);
+        lexer.setInput(message.content);
         const lexOut = lexer.lexCommand((s) => (s.startsWith(prefix) ? prefix.length : null));
         if (!lexOut) return;
         const [commandName, commandTokens] = [lexOut[0].value, lexOut[1]()];

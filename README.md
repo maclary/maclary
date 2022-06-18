@@ -33,7 +33,7 @@
 
 # Description
 
-Maclary is a Discord bot framework intended to make developing bots a lot faster and easier, with built in command and event handling.
+Maclary is a Discord bot framework intended to make developing bots a lot faster and easier, with built in command, event and component handling.
 
 It is named after Hairy Maclary, a character from the New Zealand childrens book series of the same name.
 
@@ -46,7 +46,7 @@ Maclary is still in its early stages, please report any bugs you may find.
 
 # Features
 
--   Built in command and event handling
+-   Built in command, event and component handling
 -   Use of arguments and preconditions
 -   Advanced subcommand creation system
 -   Ability to use plugins
@@ -54,83 +54,104 @@ Maclary is still in its early stages, please report any bugs you may find.
 
 # Getting Started
 
-Maclary requires Discord.js version 14 to work, which is currently in development (`npm install discord.js@dev`).
+Maclary requires Discord.js v14 to work, which is currently in development (`npm install discord.js@dev`).
 
-It is very important that you include the `main` field within your package.json file!
+It is very important that you include the `main` field within your package.json.
 
-src/index.ts
+src/index.js
 
-```ts
-process.env.MACLARY_ENV = 'development';
-import { MaclaryClient } from 'maclary';
-import { Partials } from 'discord.js';
+```js
+process.env.NODE_ENV = 'development';
+const { MaclaryClient } = require('maclary');
+const { Partials } = require('discord.js');
 
 const client = new MaclaryClient({
     intents: ['Guilds', 'GuildMessages', 'DirectMessages', 'MessageContent'],
     partials: [Partials.Channel],
     defaultPrefix: '!',
-    developmentGuildId: '123456789012345678',
     developmentPrefix: 'dev!',
+    developmentGuildId: '123456789012345678',
 });
 
 const token =
-    process.env.MACLARY_ENV === 'development' ? 'development_bot_token' : 'production_bot_token';
+    process.env.NODE_ENV === 'development' ? 'development_bot_token' : 'production_bot_token';
 client.login(token);
 ```
 
-src/commands/echo.ts
+src/commands/echo.js
 
-```ts
-import { Command, Preconditions } from 'maclary';
+```js
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { Command, Preconditions } = require('maclary');
 
-export default class Echo extends Command {
-    public constructor() {
+const actionRow = new ActionRowBuilder().addComponents([
+    new ButtonBuilder().setStyle(ButtonStyle.Primary).setLabel('Ping Me!'),
+]);
+
+module.exports = class Echo extends Command {
+    constructor() {
         super({
+            type: Command.Type.ChatInput,
+            kinds: [Command.Kind.Prefix, Command.Kind.Interaction],
+            preconditions: [Preconditions.GuildOnly],
             name: 'echo',
+            description: 'Echos the input.',
             aliases: ['say'],
-            description: 'Echo!',
             options: [
                 {
                     type: Command.OptionType.String,
                     name: 'input',
-                    description: 'The input to echo.',
+                    description: 'The text to echo.',
                 },
             ],
-            kinds: [Command.Kind.Prefix, Command.Kind.Interaction],
-            preconditions: [Preconditions.GuildOnly],
         });
     }
 
-    public override async onMessage(
-        message: Command.Message,
-        args: Command.Arguments,
-    ): Promise<void> {
-        const input = args.rest();
-        await message.reply(input);
+    async onMessage(message, args) {
+        const content = args.rest();
+        actionRow.components[0].setCustomId(`pingUser,${message.author.id}`);
+        await message.reply({ content, components: [actionRow] });
     }
 
-    public override async onChatInput(interaction: Command.ChatInput): Promise<void> {
-        const input = interaction.options.getString('input');
-        await interaction.reply(input);
+    async onChatInput(interaction) {
+        const content = interaction.options.getString('input');
+        actionRow.components[0].setCustomId(`pingUser,${interaction.user.id}`);
+        await interaction.reply({ content, components: [actionRow] });
     }
-}
+};
 ```
 
-And thats it! Maclary will handle the rest!
+src/components/pingUser.js
+
+```js
+const { Component } = require('maclary');
+
+module.exports = class PingUser extends Component {
+    constructor() {
+        super({ id: 'pingUser' });
+    }
+
+    async onButton(button) {
+        const [, userId] = button.customId.split(',');
+        const user = await this.container.client.users.fetch(userId);
+        await button.reply(user.toString());
+    }
+};
+```
+
+And that is it! Maclary will handle the rest.
 
 # Command Categories
 
 You can set the categories for commands by placing them in a folder that starts with `@`.
 
-For example, `commands/@moderator/kick.ts`.
+For example, `commands/@moderator/kick.js`.
 
 # Subcommands
 
 Maclary allows you to create subcommands using folders that start with `!`.
 
-For example, `commands/!sub/command.ts`, `commands/!sub/command/group.ts`.
-
-Theses subcommands work both with interaction and prefix commands.
+For example, `commands/!sub/command.js`, `commands/!sub/command/group.js`, `commands/@category/!sub/command.js`.
 
 # Patching Commands
 

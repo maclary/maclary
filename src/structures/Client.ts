@@ -1,6 +1,7 @@
 import { type Container, container } from '../container';
 import { Error } from '../errors';
 import { CommandManager } from '../managers/CommandManager';
+import { ComponentManager } from '../managers/ComponentManager';
 import { EventManager } from '../managers/EventManager';
 import {
     PluginManager,
@@ -12,7 +13,7 @@ import { getRootData } from '../internal/RootScanner';
 import { Prefix as PrefixRegex, Snowflake as SnowflakeRegex } from '../utils/Regexes';
 
 import { Client, type Snowflake, type ClientOptions } from 'discord.js';
-import { z } from 'zod';
+import Joi from 'joi';
 
 export interface MaclaryClientOptions {
     /**
@@ -50,12 +51,17 @@ export class MaclaryClient extends Client {
     public readonly commands: CommandManager;
 
     /**
+     * The clients {@link ComponentManager}.
+     */
+    public readonly components: ComponentManager;
+
+    /**
      * The clients {@link PluginManager}.
      */
     public readonly plugins: PluginManager;
 
     /**
-     * The base directory, used to find default {@link CommandManager} and{@link EventManager} directories.
+     * The base directory, used to find default {@link CommandManager} and {@link EventManager} directories.
      */
     public get baseDirectory(): string {
         return getRootData().root;
@@ -77,6 +83,7 @@ export class MaclaryClient extends Client {
 
         this.events = new EventManager();
         this.commands = new CommandManager();
+        this.components = new ComponentManager();
         this.plugins = new PluginManager();
 
         const logger = options.logger || console;
@@ -94,6 +101,7 @@ export class MaclaryClient extends Client {
         }
 
         this.validateOptions();
+
         await this.preparing();
         await super.login(token);
         await this.ready();
@@ -118,17 +126,26 @@ export class MaclaryClient extends Client {
         return this.login(process.env.__DISCORD_TOKEN__ as string);
     }
 
+    /**
+     * Run all plugins on preparing method.
+     */
     private async preparing(): Promise<void> {
         for (const promise of [
             () => this.events.load().then((e) => e.patch()),
             () => this.commands.load(),
+            () => this.components.load(),
             () => this.plugins[broadcastPreparing](),
         ])
             await promise();
     }
 
+    /**
+     * Run all plugins on ready method.
+     */
     private async ready(): Promise<void> {
-        if (process.env.MACLARY_ENV === 'development') {
+        if (process.env.NODE_ENV === 'development') {
+            // If in development mode, set the commands
+            // application to the development guild
             if (this.shard === null) {
                 this.options.defaultPrefix = this.options.developmentPrefix;
                 this.commands.application = await this.guilds.fetch(
@@ -146,16 +163,16 @@ export class MaclaryClient extends Client {
     }
 
     private validateOptions(): void {
-        const prefixes = z.union([
-            z.string().regex(PrefixRegex),
-            z.array(z.string().regex(PrefixRegex)),
-        ]);
+        const prefix = Joi.string().regex(PrefixRegex);
+        const schema = Joi.object({
+            logger: Joi.any().optional(),
+            defaultPrefix: Joi.alternatives().try(prefix, Joi.array().items(prefix)).required(),
+            developmentPrefix: Joi.alternatives().try(prefix, Joi.array().items(prefix)).required(),
+            developmentGuildId: Joi.string().regex(SnowflakeRegex).required(),
+        }).unknown();
 
-        prefixes.parse(this.options.defaultPrefix);
-        prefixes.parse(this.options.developmentPrefix);
-
-        const snowflake = z.string().regex(SnowflakeRegex);
-        snowflake.parse(this.options.developmentGuildId);
+        const { error } = schema.validate(this.options);
+        if (error) throw error;
     }
 }
 

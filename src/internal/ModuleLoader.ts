@@ -12,6 +12,7 @@ if (hasSymbol || hasEnvVar) {
     filterDtsFiles = true;
 }
 
+// Check if a value is a class
 export function isClass(value: unknown): boolean {
     return typeof value === 'function' && typeof value.prototype === 'object';
 }
@@ -22,6 +23,7 @@ export interface ModuleData {
     name: string;
 }
 
+// Get information about a file or folder
 export function getModuleInformation(path: string, allowFolders = false): ModuleData | null {
     const extension = extname(path);
     if (!(allowFolders && extension === '') && !supportedExtensions.has(extension)) return null;
@@ -32,6 +34,7 @@ export function getModuleInformation(path: string, allowFolders = false): Module
     return { extension, path, name };
 }
 
+// Import a module depending on the file type
 export async function requireModule(file: ModuleData): Promise<any> {
     const mjs = file.extension === '.mjs' || (file.extension === '.js' && usingESM);
     if (mjs) return import(file.path);
@@ -41,6 +44,7 @@ export async function requireModule(file: ModuleData): Promise<any> {
     return mod;
 }
 
+// Load a module
 export async function loadModule(file: ModuleData, useDefault = true): Promise<any> {
     const mod = await requireModule(file);
     if (mod.default && useDefault) return mod.default;

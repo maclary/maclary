@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file.
 
+# [0.4.1](https://github.com/maclary/maclary/compare/0.4.0...0.4.1) - (2022-06-18)
+
+## Bug Fixes
+
+-   **Builtin:** Interaction create not handling modal submits ([4fc06c5](https://github.com/maclary/maclary/commit/4fc06c5f1f11e6d85ebeb894bde949e973c2ac86))
+
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+# [0.4.0](https://github.com/maclary/maclary/compare/0.3.0...0.4.0) - (2022-06-18)
+
+## Bug Fixes
+
+-   **Client:** Missing support for prefix array ([b98381c](https://github.com/maclary/maclary/commit/b98381c4fb0a64914e86687edc34fd0817e29161))
+-   Interaction isCommand is not a function ([62c0917](https://github.com/maclary/maclary/commit/62c09175de82196e3c6dc1d9a134b442d679e98c))
+-   **Command:** Invalid error keys ([8188c6d](https://github.com/maclary/maclary/commit/8188c6dab6a77fbc1b4acbeea3dd292fe1e4072c))
+-   Incorrect CustomId create method parameter types ([b34f68b](https://github.com/maclary/maclary/commit/b34f68b9420821113c7deafbf1bb0fae0d345e4b))
+
+## Documentation
+
+-   Improve comments ([76595f1](https://github.com/maclary/maclary/commit/76595f1ba6c917a88c8f3ad387d16c201905ac7d))
+
+## Features
+
+-   Add bot mention as a prefix ([2203d19](https://github.com/maclary/maclary/commit/2203d191ebc75eec094b6e871aeed7a07720f369))
+-   Add Component and ComponentManager ([4d84f79](https://github.com/maclary/maclary/commit/4d84f7916d82f27f6e3492d8c77bc371196f7bc7))
+-   Add CommandOptionsBuilder ([041e8fc](https://github.com/maclary/maclary/commit/041e8fc45c630013c512f44ebdf107cf2b8229c7))
+
+## Refactor
+
+-   Remove component timeouts ([00931cc](https://github.com/maclary/maclary/commit/00931ccb152c26d6e49a903e06b2cd284b120bfa))
+-   Switch MACLARY_ENV to NODE_ENV ([cf7ad8a](https://github.com/maclary/maclary/commit/cf7ad8a0288f6132f568a913b71e367bd027729e))
+-   Replace zod with joi ([1cb0f24](https://github.com/maclary/maclary/commit/1cb0f245c95b2b508ad86d20c78877c7f1bc60b5))
+-   Change eslint and prettier configs ([35e075b](https://github.com/maclary/maclary/commit/35e075bdca9cb80e17f039bc70b70b057a1d26ba))
+-   Export managers ([0d41c06](https://github.com/maclary/maclary/commit/0d41c068ac40d12678c61da2638e50fc47a6c6d0))
+
+## Styling
+
+-   Formatting ([48ac803](https://github.com/maclary/maclary/commit/48ac80398b4b5c64d0382022a715a90e4f172f85))
+
 # [0.3.0](https://github.com/maclary/maclary/compare/0.2.0...0.3.0) - (2022-04-26)
 
 ## Bug Fixes
@@ -28,10 +69,6 @@ All notable changes to this project will be documented in this file.
 
 -   Fix importing missing module ([59fea90](https://github.com/maclary/maclary/commit/59fea90a82ff7e2fd45d1b9f4e0a526d223ffb92))
 -   Remove twemoji ([d2a397d](https://github.com/maclary/maclary/commit/d2a397d4fe6b0ac347cb6dc3f4db34c259a59c02))
-
-# Changelog
-
-All notable changes to this project will be documented in this file.
 
 # [0.2.0](https://github.com/maclary/maclary/compare/0.1.0...0.2.0) - (2022-04-23)
 
