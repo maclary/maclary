@@ -60,7 +60,7 @@ It is very important that you include the `main` field within your package.json.
 
 src/index.js
 
-```ts
+```js
 process.env.NODE_ENV = 'development';
 const { MaclaryClient } = require('maclary');
 const { Partials } = require('discord.js');
@@ -76,12 +76,11 @@ const client = new MaclaryClient({
 const token =
     process.env.NODE_ENV === 'development' ? 'development_bot_token' : 'production_bot_token';
 client.login(token);
-module.exports = client;
 ```
 
 src/commands/echo.js
 
-```ts
+```js
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { Command, Preconditions } = require('maclary');
 
@@ -124,7 +123,7 @@ module.exports = class Echo extends Command {
 
 src/components/pingUser.js
 
-```ts
+```js
 const { Component } = require('maclary');
 
 module.exports = class PingUser extends Component {
