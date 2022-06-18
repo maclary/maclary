@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+# [0.4.2](https://github.com/maclary/maclary/compare/0.4.1...0.4.2) - (2022-06-18)
+
+## Bug Fixes
+
+-   **Builtin:** IsModalSubmit is not a function ([0fb7482](https://github.com/maclary/maclary/commit/0fb74828f14e2602cff51227e1bf44281ad2af1a))
+
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
 # [0.4.1](https://github.com/maclary/maclary/compare/0.4.0...0.4.1) - (2022-06-18)
 
 ## Bug Fixes
