@@ -163,10 +163,11 @@ export class MaclaryClient extends Client {
     }
 
     private validateOptions(): void {
+        const prefix = Joi.string().regex(PrefixRegex);
         const schema = Joi.object({
             logger: Joi.any().optional(),
-            defaultPrefix: Joi.string().regex(PrefixRegex).required(),
-            developmentPrefix: Joi.string().regex(PrefixRegex).required(),
+            defaultPrefix: Joi.alternatives().try(prefix, Joi.array().items(prefix)).required(),
+            developmentPrefix: Joi.alternatives().try(prefix, Joi.array().items(prefix)).required(),
             developmentGuildId: Joi.string().regex(SnowflakeRegex).required(),
         }).unknown();
 
