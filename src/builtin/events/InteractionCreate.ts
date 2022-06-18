@@ -30,7 +30,11 @@ export default class OnInteractionCreate extends Event {
             } else if (interaction.isMessageContextMenuCommand()) {
                 return this.handleMessageContextMenu(interaction);
             }
-        } else if (interaction.type === InteractionType.MessageComponent) {
+        } else if (
+            [InteractionType.MessageComponent, InteractionType.ModalSubmit].includes(
+                interaction.type,
+            )
+        ) {
             const { client } = this.container;
             const name = (interaction as MessageComponentInteraction).customId.split(',')[0];
             const action = client.components.cache.get(name);
