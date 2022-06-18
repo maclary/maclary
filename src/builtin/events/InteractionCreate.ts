@@ -4,6 +4,7 @@ import {
     CommandInteraction,
     InteractionType,
     MessageComponentInteraction,
+    ModalSubmitInteraction,
 } from 'discord.js';
 import { container } from '../../container';
 import type { Command } from '../../structures/Command';
@@ -44,8 +45,8 @@ export default class OnInteractionCreate extends Event {
                     return void action.onButton(interaction);
                 } else if (interaction.isSelectMenu()) {
                     return void action.onSelectMenu(interaction);
-                } else if (interaction.isModalSubmit()) {
-                    return void action.onModalSubmit(interaction);
+                } else if (interaction.type === InteractionType.ModalSubmit) {
+                    return void action.onModalSubmit(interaction as ModalSubmitInteraction);
                 }
             }
         }
