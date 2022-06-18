@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+# [0.4.1](https://github.com/maclary/maclary/compare/0.4.0...0.4.1) - (2022-06-18)
+
+## Bug Fixes
+
+-   **Builtin:** Interaction create not handling modal submits ([4fc06c5](https://github.com/maclary/maclary/commit/4fc06c5f1f11e6d85ebeb894bde949e973c2ac86))
+
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
 # [0.4.0](https://github.com/maclary/maclary/compare/0.3.0...0.4.0) - (2022-06-18)
 
 ## Bug Fixes
