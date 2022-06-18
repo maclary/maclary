@@ -38,7 +38,7 @@ export default class OnMessageCreate extends Event {
         // Format all prefixes for regex
         const prefixes = [
             [client.options.defaultPrefix].flat().map((p) => p.replace(/([^a-zA-Z0-9])/g, '\\$1')),
-            MentionRegex.source.slice(1, -1) + ' ?',
+            `${MentionRegex.source.slice(1, -1)} ?`,
         ].flat();
 
         // Verify the message starts with one of the prefixes
