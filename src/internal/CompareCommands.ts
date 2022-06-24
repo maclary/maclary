@@ -17,11 +17,6 @@ export function compareContextMenus(existing: any, local: any): Differences {
         differences.push(['name', existing.name, local.name]);
     }
 
-    // Compare description
-    if (existing.description !== local.description) {
-        differences.push(['description', existing.description, local.description]);
-    }
-
     return differences;
 }
 

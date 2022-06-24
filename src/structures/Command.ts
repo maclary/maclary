@@ -9,14 +9,12 @@ import * as Discord from 'discord.js';
 export interface CommandOptions {
     /**
      * The type of the command, one of the the command or command option types.
-     * @default Command.Type.ChatInput
      */
     type: Command.Type | Command.OptionType;
 
     /**
      * What kinds of command this is, sets wether or not this command is
      * a prefix command, interaction command, or both.
-     * @default [Command.Kind.Prefix, Command.Kind.Interaction]
      */
     kinds: Command.Kind[];
 
@@ -33,7 +31,6 @@ export interface CommandOptions {
 
     /**
      * The description for the command.
-     * @default '-'
      */
     description?: string;
 
@@ -107,12 +104,15 @@ export abstract class Command extends Base {
         super();
 
         const schema = Joi.object({
-            type: Joi.string()
+            type: Joi.number()
                 .valid(...Object.values(Command.Type))
                 .required(),
-            name: Joi.string()
-                .regex(/^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u)
-                .required(),
+            name:
+                options.type === Command.Type.ChatInput
+                    ? Joi.string()
+                          .regex(/^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u)
+                          .required()
+                    : Joi.string().required(),
             aliases: Joi.array()
                 .items(
                     Joi.string()
@@ -120,7 +120,7 @@ export abstract class Command extends Base {
                         .required(),
                 )
                 .default([]),
-            description: Joi.string().default('-'),
+            description: Joi.string().required(),
             category: Joi.string().optional(),
             kinds: Joi.array()
                 .items(Joi.string().valid(...Object.values(Command.Kind)))

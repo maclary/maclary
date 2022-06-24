@@ -50,10 +50,9 @@ export class CommandManager extends MapManager<string, Command> {
         const externalCommands = this.application.commands.cache;
 
         // Filter local commands by interaction kind
-        const localCommands: Command[] = this.filterByKind(
-            Command.Kind.Interaction,
-            Array.from(this.cache.values()),
-        );
+        const localCommands: Command[] = this.filterByKind(Command.Kind.Interaction, [
+            ...Array.from(this.cache.values()),
+        ]);
 
         // Compare the groups of commands and determine if should patch
         let shouldPatch = externalCommands.size !== localCommands.length;
@@ -67,7 +66,15 @@ export class CommandManager extends MapManager<string, Command> {
 
         // Update if needed
         if (shouldPatch) {
-            const commands = Array.from(localCommands);
+            const commands = Array.from(
+                localCommands.map((c) =>
+                    Object.assign({
+                        ...c,
+                        description: c.type === Command.Type.ChatInput ? c.description : '',
+                    }),
+                ),
+            );
+
             // @ts-ignore Bypass Discord.js typings
             await this.application.commands.set(commands);
             this.container.logger.info(`Patched ${commands.length} commands`);
@@ -172,6 +179,7 @@ export class CommandManager extends MapManager<string, Command> {
                     kinds: [Command.Kind.Interaction, Command.Kind.Prefix],
                     name: itemName,
                     category: categoryName,
+                    description: 'This is a subcommand group.',
                 });
             }
         }
