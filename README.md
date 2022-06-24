@@ -88,11 +88,11 @@ const actionRow = new ActionRowBuilder().addComponents([
     new ButtonBuilder().setStyle(ButtonStyle.Primary).setLabel('Ping Me!'),
 ]);
 
-module.exports = class Echo extends Command {
+module.exports = class ChatInputEcho extends Command {
     constructor() {
         super({
             type: Command.Type.ChatInput,
-            kinds: [Command.Kind.Prefix, Command.Kind.Interaction],
+            kinds: [Command.Kind.Slash, Command.Kind.Prefix],
             preconditions: [Preconditions.GuildOnly],
             name: 'echo',
             description: 'Echos the input.',
