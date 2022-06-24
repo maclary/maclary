@@ -199,7 +199,8 @@ export abstract class Command extends Base {
      * @returns {Promise<unknown>}
      * @abstract
      */
-    public onUserContextMenu(_: Command.UserContextMenu): Promise<unknown> {
+    public onUserContextMenu(menu: Command.UserContextMenu): Promise<unknown> {
+        void menu;
         throw new Error('COMMAND_MISSING_METHOD', this.name, 'onUserContextMenu');
     }
 
@@ -209,7 +210,8 @@ export abstract class Command extends Base {
      * @returns {Promise<unknown>}
      * @abstract
      */
-    public onMessageContextMenu(_: Command.MessageContextMenu): Promise<unknown> {
+    public onMessageContextMenu(menu: Command.MessageContextMenu): Promise<unknown> {
+        void menu;
         throw new Error('COMMAND_MISSING_METHOD', this.name, 'onMessageContextMenu');
     }
 }

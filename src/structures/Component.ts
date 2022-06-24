@@ -34,7 +34,8 @@ export class Component extends Base {
      * @param button The button interaction
      * @abstract
      */
-    public onButton(_: Component.Button): void {
+    public onButton(button: Component.Button): void {
+        void button;
         throw new Error('COMPONENT_MISSING_METHOD', this.id, 'onButton');
     }
 
@@ -42,7 +43,8 @@ export class Component extends Base {
      * When a select menu interaction is received with this components ID.
      * @param menu The modal submit interaction
      */
-    public onSelectMenu(_: Component.SelectMenu): void {
+    public onSelectMenu(menu: Component.SelectMenu): void {
+        void menu;
         throw new Error('COMPONENT_MISSING_METHOD', this.id, 'onSelectMenu');
     }
 
@@ -50,7 +52,8 @@ export class Component extends Base {
      * When a modal submit interaction is received with this components ID.
      * @param modal The modal submit interaction
      */
-    public onModalSubmit(_: Component.ModalSubmit): void {
+    public onModalSubmit(modal: Component.ModalSubmit | Component.MessageModalSubmit): void {
+        void modal;
         throw new Error('COMPONENT_MISSING_METHOD', this.id, 'onModalSubmit');
     }
 }
@@ -59,4 +62,5 @@ export namespace Component {
     export type Button = Discord.ButtonInteraction;
     export type SelectMenu = Discord.SelectMenuInteraction;
     export type ModalSubmit = Discord.ModalSubmitInteraction;
+    export type MessageModalSubmit = Discord.ModalMessageModalSubmitInteraction;
 }
