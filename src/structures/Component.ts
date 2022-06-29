@@ -56,6 +56,15 @@ export class Component extends Base {
         void modal;
         throw new Error('COMPONENT_MISSING_METHOD', this.id, 'onModalSubmit');
     }
+
+    /**
+     * When an autocomplete interaction is received with this components ID.
+     * @param autocomplete The autocomplete interaction
+     */
+    public onAutocomplete(autocomplete: Component.Autocomplete): void {
+        void autocomplete;
+        throw new Error('COMPONENT_MISSING_METHOD', this.id, 'onAutocomplete');
+    }
 }
 
 export namespace Component {
@@ -63,4 +72,5 @@ export namespace Component {
     export type SelectMenu = Discord.SelectMenuInteraction;
     export type ModalSubmit = Discord.ModalSubmitInteraction;
     export type MessageModalSubmit = Discord.ModalMessageModalSubmitInteraction;
+    export type Autocomplete = Discord.AutocompleteInteraction;
 }
