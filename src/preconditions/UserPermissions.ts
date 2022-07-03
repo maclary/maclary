@@ -35,7 +35,9 @@ export function UserPermissions(permissions: PermissionResolvable): typeof Preco
             return this.sharedRun(permissions);
         }
 
-        public override contextMenuRun(interaction: Command.ContextMenu): Result {
+        public override contextMenuRun(
+            interaction: Command.MessageContextMenu | Command.UserContextMenu,
+        ): Result {
             const permissions = interaction.inGuild()
                 ? interaction.memberPermissions
                 : dmChannelPermissions;
@@ -57,88 +59,88 @@ export function UserPermissions(permissions: PermissionResolvable): typeof Preco
 
 /*
 import {
-	BaseGuildTextChannel,
-	CommandInteraction,
-	ContextMenuInteraction,
-	GuildTextBasedChannel,
-	Message,
-	Permissions,
-	PermissionString
+    BaseGuildTextChannel,
+    CommandInteraction,
+    ContextMenuInteraction,
+    GuildTextBasedChannel,
+    Message,
+    Permissions,
+    PermissionString
 } from 'discord.js';
 import { Identifiers } from '../lib/errors/Identifiers';
 import type { Command } from '../lib/structures/Command';
 import { AllFlowsPrecondition, PreconditionContext } from '../lib/structures/Precondition';
 
 export interface PermissionPreconditionContext extends PreconditionContext {
-	permissions?: Permissions;
+    permissions?: Permissions;
 }
 
 export class CorePrecondition extends AllFlowsPrecondition {
-	private readonly dmChannelPermissions = new Permissions(
-		~new Permissions([
-			//
-			'ADD_REACTIONS',
-			'ATTACH_FILES',
-			'EMBED_LINKS',
-			'READ_MESSAGE_HISTORY',
-			'SEND_MESSAGES',
-			'USE_EXTERNAL_EMOJIS',
-			'VIEW_CHANNEL'
-		]).bitfield & Permissions.ALL
-	).freeze();
+    private readonly dmChannelPermissions = new Permissions(
+        ~new Permissions([
+            //
+            'ADD_REACTIONS',
+            'ATTACH_FILES',
+            'EMBED_LINKS',
+            'READ_MESSAGE_HISTORY',
+            'SEND_MESSAGES',
+            'USE_EXTERNAL_EMOJIS',
+            'VIEW_CHANNEL'
+        ]).bitfield & Permissions.ALL
+    ).freeze();
 
-	public messageRun(message: Message, _: Command, context: PermissionPreconditionContext) {
-		const required = context.permissions ?? new Permissions();
-		const channel = message.channel as BaseGuildTextChannel;
+    public messageRun(message: Message, _: Command, context: PermissionPreconditionContext) {
+        const required = context.permissions ?? new Permissions();
+        const channel = message.channel as BaseGuildTextChannel;
 
-		if (!message.client.id) {
-			return this.error({
-				identifier: Identifiers.PreconditionClientPermissionsNoClient,
-				message: 'There was no client to validate the permissions for.'
-			});
-		}
+        if (!message.client.id) {
+            return this.error({
+                identifier: Identifiers.PreconditionClientPermissionsNoClient,
+                message: 'There was no client to validate the permissions for.'
+            });
+        }
 
-		const permissions = message.guild ? channel.permissionsFor(message.client.id) : this.dmChannelPermissions;
+        const permissions = message.guild ? channel.permissionsFor(message.client.id) : this.dmChannelPermissions;
 
-		return this.sharedRun(required, permissions, 'message');
-	}
+        return this.sharedRun(required, permissions, 'message');
+    }
 
-	public async chatInputRun(interaction: CommandInteraction, _: Command, context: PermissionPreconditionContext) {
-		const required = context.permissions ?? new Permissions();
+    public async chatInputRun(interaction: CommandInteraction, _: Command, context: PermissionPreconditionContext) {
+        const required = context.permissions ?? new Permissions();
 
-		const channel = (await this.fetchChannelFromInteraction(interaction)) as GuildTextBasedChannel;
+        const channel = (await this.fetchChannelFromInteraction(interaction)) as GuildTextBasedChannel;
 
-		const permissions = interaction.inGuild() ? channel.permissionsFor(interaction.applicationId) : this.dmChannelPermissions;
+        const permissions = interaction.inGuild() ? channel.permissionsFor(interaction.applicationId) : this.dmChannelPermissions;
 
-		return this.sharedRun(required, permissions, 'chat input');
-	}
+        return this.sharedRun(required, permissions, 'chat input');
+    }
 
-	public async contextMenuRun(interaction: ContextMenuInteraction, _: Command, context: PermissionPreconditionContext) {
-		const required = context.permissions ?? new Permissions();
-		const channel = (await this.fetchChannelFromInteraction(interaction)) as GuildTextBasedChannel;
+    public async contextMenuRun(interaction: ContextMenuInteraction, _: Command, context: PermissionPreconditionContext) {
+        const required = context.permissions ?? new Permissions();
+        const channel = (await this.fetchChannelFromInteraction(interaction)) as GuildTextBasedChannel;
 
-		const permissions = interaction.inGuild() ? channel.permissionsFor(interaction.applicationId) : this.dmChannelPermissions;
+        const permissions = interaction.inGuild() ? channel.permissionsFor(interaction.applicationId) : this.dmChannelPermissions;
 
-		return this.sharedRun(required, permissions, 'context menu');
-	}
+        return this.sharedRun(required, permissions, 'context menu');
+    }
 
-	private sharedRun(requiredPermissions: Permissions, availablePermissions: Permissions | null, commandType: string) {
-		if (!availablePermissions) {
-			return this.error({
-				identifier: Identifiers.PreconditionClientPermissionsNoPermissions,
-				message: `I was unable to resolve my permissions in the ${commandType} command invocation channel.`
-			});
-		}
+    private sharedRun(requiredPermissions: Permissions, availablePermissions: Permissions | null, commandType: string) {
+        if (!availablePermissions) {
+            return this.error({
+                identifier: Identifiers.PreconditionClientPermissionsNoPermissions,
+                message: `I was unable to resolve my permissions in the ${commandType} command invocation channel.`
+            });
+        }
 
-		const missing = availablePermissions.missing(requiredPermissions);
-		return missing.length === 0
-			? this.ok()
-			: this.error({
-					identifier: Identifiers.PreconditionClientPermissions,
-					message: `I am missing the following permissions to run this command: ${missing
-						.map((perm) => CorePrecondition.readablePermissions[perm])
-						.join(', ')}`,
-					context: { missing }
-			  });
-	}
+        const missing = availablePermissions.missing(requiredPermissions);
+        return missing.length === 0
+            ? this.ok()
+            : this.error({
+                    identifier: Identifiers.PreconditionClientPermissions,
+                    message: `I am missing the following permissions to run this command: ${missing
+                        .map((perm) => CorePrecondition.readablePermissions[perm])
+                        .join(', ')}`,
+                    context: { missing }
+              });
+    }
 */

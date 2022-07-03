@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import type * as Discord from 'discord.js';
+import * as Discord from 'discord.js';
 import { Base } from './Base';
 import { Error } from '../errors';
 
@@ -60,8 +60,12 @@ export class Component extends Base {
 
 export namespace Component {
     export type Button = Discord.ButtonInteraction;
+    export const Button = Discord.ButtonInteraction;
     export type SelectMenu = Discord.SelectMenuInteraction;
+    export const SelectMenu = Discord.SelectMenuInteraction;
     export type ModalSubmit = Discord.ModalSubmitInteraction;
+    export const ModalSubmit = Discord.ModalSubmitInteraction;
     export type MessageModalSubmit = Discord.ModalMessageModalSubmitInteraction;
     export type ComponentInteraction = Discord.MessageComponentInteraction;
+    export const ComponentInteraction = Discord.MessageComponentInteraction;
 }

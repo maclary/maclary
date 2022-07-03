@@ -1,7 +1,7 @@
 import { Base } from './Base';
 import { Error } from '../errors';
 import { Precondition, PreconditionsContainer } from './Precondition';
-import type { Args } from './Args';
+import { Args } from './Args';
 
 import { s } from '@sapphire/shapeshift';
 import * as Discord from 'discord.js';
@@ -262,16 +262,23 @@ export namespace Command {
     }
 
     export type Options = CommandOptions;
-    export type OptionType = Discord.ApplicationCommandOptionType;
 
     export type Message = Discord.Message;
+    export const { Message } = Discord;
     export type Arguments = Args;
+    export const Arguments = Args;
+
+    export type OptionType = Discord.ApplicationCommandOptionType;
+    export const OptionType = Discord.ApplicationCommandOptionType;
 
     export type ChatInput = Discord.ChatInputCommandInteraction;
-    export type UserContextMenu = Discord.UserContextMenuCommandInteraction;
-    export type MessageContextMenu = Discord.MessageContextMenuCommandInteraction;
-    export type ContextMenu = UserContextMenu | MessageContextMenu;
-    export type CommandInteraction = Discord.CommandInteraction;
-
+    export const ChatInput = Discord.ChatInputCommandInteraction;
     export type Autocomplete = Discord.AutocompleteInteraction;
+    export const Autocomplete = Discord.AutocompleteInteraction;
+    export type UserContextMenu = Discord.UserContextMenuCommandInteraction;
+    export const UserContextMenu = Discord.UserContextMenuCommandInteraction;
+    export type MessageContextMenu = Discord.MessageContextMenuCommandInteraction;
+    export const MessageContextMenu = Discord.MessageContextMenuCommandInteraction;
+    export type CommandInteraction = Discord.CommandInteraction;
+    export const { CommandInteraction } = Discord;
 }
