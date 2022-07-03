@@ -192,6 +192,25 @@ export abstract class Command extends Base {
         throw new Error('COMMAND_MISSING_METHOD', this.name, 'onMessageContextMenu');
     }
 
+    /**
+     * When a autocomplete interaction is received for this command.
+     * @param autocomplete {Command.Autocomplete} The autocomplete
+     * @abstract
+     */
+    public async onAutocomplete(autocomplete: Command.Autocomplete): Promise<unknown> {
+        if (this.subType === Command.SubType.Group) {
+            const commandName =
+                autocomplete.options.getSubcommandGroup() || autocomplete.options.getSubcommand();
+            Reflect.set(autocomplete.options, '_group', null);
+            const command = this.options.find((c) => c.name === commandName);
+
+            if (!(command instanceof Command)) return undefined;
+            return command.onAutocomplete(autocomplete);
+        }
+
+        throw new Error('COMMAND_MISSING_METHOD', this.name, 'onChatInput');
+    }
+
     public toJSON(): Discord.ApplicationCommandData | Discord.ApplicationCommandData[] {
         if (this.type === Command.Type.ContextMenu) {
             return this.kinds.map((kind) => ({
@@ -252,5 +271,7 @@ export namespace Command {
     export type UserContextMenu = Discord.UserContextMenuCommandInteraction;
     export type MessageContextMenu = Discord.MessageContextMenuCommandInteraction;
     export type ContextMenu = UserContextMenu | MessageContextMenu;
-    export type Interaction = ChatInput | UserContextMenu | MessageContextMenu;
+    export type CommandInteraction = Discord.CommandInteraction;
+
+    export type Autocomplete = Discord.AutocompleteInteraction;
 }
