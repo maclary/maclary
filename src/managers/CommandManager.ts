@@ -5,9 +5,9 @@ import { Events } from '../types/Events';
 import { getModuleInformation, loadModule } from '../internal/ModuleLoader';
 import { compareCommands } from '../internal/CompareCommands';
 
-import { join } from 'path';
-import { readdirSync, lstatSync, existsSync } from 'fs';
 import type { ClientApplication, Guild } from 'discord.js';
+import { readdirSync, lstatSync, existsSync } from 'fs';
+import { join } from 'path';
 
 /**
  * The {@link Command} manager. You should never have to create an instance of this class.
@@ -47,16 +47,17 @@ export class CommandManager extends MapManager<string, Command> {
 
         // Fetch existing commands
         await this.application.commands.fetch({});
-        const externalCommands = this.application.commands.cache;
+        const externalCommands = this.application.commands.cache.clone();
 
         // Filter local commands by interaction kind
         const localCommands: Command[] = this.filterByKind(
-            Command.Kind.Interaction,
-            Array.from(this.cache.values()),
+            Array.from(this.cache.clone().values()),
+            [Command.Kind.Slash, Command.Kind.User, Command.Kind.Message],
         );
+        const flatCommands = localCommands.map((c) => c.toJSON()).flat();
 
         // Compare the groups of commands and determine if should patch
-        let shouldPatch = externalCommands.size !== localCommands.length;
+        let shouldPatch = externalCommands.size !== flatCommands.length;
         for (const local of localCommands) {
             const external = externalCommands.find((e) => e.name === local.name);
             if (!external) shouldPatch = true;
@@ -67,10 +68,9 @@ export class CommandManager extends MapManager<string, Command> {
 
         // Update if needed
         if (shouldPatch) {
-            const commands = Array.from(localCommands);
-            // @ts-ignore Bypass Discord.js typings
-            await this.application.commands.set(commands);
-            this.container.logger.info(`Patched ${commands.length} commands`);
+            const commandData = localCommands.map((c) => c.toJSON()).flat();
+            await this.application.commands.set(commandData);
+            this.container.logger.info(`Patched ${localCommands.length} commands.`);
         } else {
             this.container.logger.info('Commands already up to date');
         }
@@ -95,13 +95,13 @@ export class CommandManager extends MapManager<string, Command> {
      * @param folderPath The path to the folder to load commands from.
      * @param categoryName Set each command to this category.
      */
-    private async loadFolderAsCategory(folderPath: string, categoryName?: string): Promise<void> {
+    private async loadFolderAsCategory(folderPath: string, categoryName = ''): Promise<void> {
         const folderExists = existsSync(folderPath);
         const message = `Cannot load commands from ${folderPath} because it does not exist.`;
         if (!folderExists) return void this.container.client.emit(Events.MaclaryDebug, message);
 
-        const contents = readdirSync(folderPath);
-        const contentInfo = contents.map((f) => getModuleInformation(f, true));
+        const dirContents = readdirSync(folderPath).map((file) => join(folderPath, file));
+        const contentInfo = dirContents.map((f) => getModuleInformation(f, true));
 
         for (const item of contentInfo) {
             if (!item) continue;
@@ -136,7 +136,7 @@ export class CommandManager extends MapManager<string, Command> {
      * @param filePath The path to the file to load.
      * @param categoryName Set the category of the command to this.
      */
-    private async loadFileAsCommand(filePath: string, categoryName?: string): Promise<void> {
+    private async loadFileAsCommand(filePath: string, categoryName = ''): Promise<void> {
         const commands = await this.loadCommandsFromFile(filePath);
         if (commands.length === 0) return;
 
@@ -162,24 +162,25 @@ export class CommandManager extends MapManager<string, Command> {
     private async loadFolderAsCommandGroup(
         itemName: string,
         folderPath: string,
-        categoryName: string | undefined,
+        categoryName = '',
         cache = false,
     ): Promise<Command> {
         class SubcommandGroup extends Command {
             public constructor() {
                 super({
                     type: Command.Type.ChatInput,
-                    kinds: [Command.Kind.Interaction, Command.Kind.Prefix],
+                    kinds: [Command.Kind.Slash, Command.Kind.Prefix],
                     name: itemName,
                     category: categoryName,
+                    description: 'This is a subcommand group.',
                 });
             }
         }
 
         const command = new SubcommandGroup();
-        command.internalType = Command.InternalType.Group;
-        command.category ||= categoryName;
+        command.subType = Command.SubType.Group;
         command.options = await this.loadFolderAsCommandOptions(folderPath, categoryName);
+
         if (cache) this.cache.set(command.name, command);
         return command;
     }
@@ -191,24 +192,21 @@ export class CommandManager extends MapManager<string, Command> {
      */
     private async loadFolderAsCommandOptions(
         folderPath: string,
-        categoryName?: string,
+        categoryName = '',
     ): Promise<Command[]> {
         const options = [];
 
-        const contents = readdirSync(folderPath);
-        for (const fileName of contents) {
-            const filePath = join(folderPath, fileName);
-            const data = getModuleInformation(filePath);
-            if (!data) continue;
+        const dirContents = readdirSync(folderPath).map((file) => join(folderPath, file));
+        const contentInfo = dirContents.map((f) => getModuleInformation(f, true));
 
-            const itemName = data.name;
-            const isFile = lstatSync(filePath).isFile();
+        for (const item of contentInfo) {
+            if (!item) continue;
 
-            let promise = null;
-            if (isFile) promise = this.loadCommandsFromFile(filePath);
-            else promise = this.loadFolderAsCommandGroup(itemName, filePath, categoryName);
+            const promise = lstatSync(item.path).isFile()
+                ? this.loadCommandsFromFile(item.path)
+                : this.loadFolderAsCommandGroup(item.name, item.path, categoryName);
             options.push(...[await promise].flat());
-            options.forEach((o) => (o.category ||= categoryName));
+            options.forEach((c) => (c.category ||= categoryName));
         }
 
         return options;
@@ -243,16 +241,16 @@ export class CommandManager extends MapManager<string, Command> {
 
     /**
      * Filter a collection of commands by a command kind.
-     * @param kind The command kind to filter by.
-     * @param options The list of commands/options.
+     * @param commands The list of commands to filter.
+     * @param kinds The list of kinds to filter by.
      */
-    private filterByKind(kind: Command.Kind, options: any): any[] {
-        return (options ?? []).filter((option: any) => {
-            if (option.internalType === Command.InternalType.Group) {
-                const opts = this.filterByKind(kind, option.options);
+    private filterByKind(commands: any[], kinds: Command.Kind[]): Command[] {
+        return (commands ?? []).filter((command) => {
+            if (command.subType === Command.SubType.Group) {
+                const opts = this.filterByKind(command.options, kinds);
                 return opts.length > 0;
-            } else if (option.internalType === Command.InternalType.Command) {
-                return option.kinds.includes(kind);
+            } else if (command.subType === Command.SubType.Command) {
+                return command.kinds.some((k: Command.Kind) => kinds.includes(k));
             }
             return true;
         });

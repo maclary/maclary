@@ -12,7 +12,9 @@ export class GuildOnly extends Precondition {
         return this.error('You cannot run this command in DMs.');
     }
 
-    public override contextMenuRun(interaction: Command.ContextMenu): Result {
+    public override contextMenuRun(
+        interaction: Command.MessageContextMenu | Command.UserContextMenu,
+    ): Result {
         if (interaction.guildId !== null) return this.ok();
         return this.error('You cannot run this command in DMs.');
     }

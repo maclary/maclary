@@ -1,22 +1,20 @@
 import { Base } from './Base';
 import { Error } from '../errors';
 import { Precondition, PreconditionsContainer } from './Precondition';
-import type { Args } from './Args';
+import { Args } from './Args';
 
-import Joi from 'joi';
+import { s } from '@sapphire/shapeshift';
 import * as Discord from 'discord.js';
 
 export interface CommandOptions {
     /**
      * The type of the command, one of the the command or command option types.
-     * @default Command.Type.ChatInput
      */
-    type: Command.Type | Command.OptionType;
+    type: Command.Type;
 
     /**
      * What kinds of command this is, sets wether or not this command is
      * a prefix command, interaction command, or both.
-     * @default [Command.Kind.Prefix, Command.Kind.Interaction]
      */
     kinds: Command.Kind[];
 
@@ -33,13 +31,12 @@ export interface CommandOptions {
 
     /**
      * The description for the command.
-     * @default '-'
      */
     description?: string;
 
     /**
      * The category this command might belong to.
-     * @default undefined
+     * @default ''
      */
     category?: string;
 
@@ -47,7 +44,7 @@ export interface CommandOptions {
      * The options for the command.
      * @default []
      */
-    options?: (Command | CommandOptions | Discord.ApplicationCommandOptionData)[];
+    options?: Discord.ApplicationCommandOptionData[];
 
     /**
      * The preconditions for the command.
@@ -60,12 +57,13 @@ export interface CommandOptions {
  * All commands must extend this class and implement its abstract methods.
  */
 export abstract class Command extends Base {
-    /**
-     * The type of the command, one of the the command or command option types.
-     */
-    public type: Command.Type | Command.OptionType;
+    public internalType: Command.InternalType = Command.InternalType.Base;
+    public subType: Command.SubType = Command.SubType.Command;
 
-    public internalType: Command.InternalType = Command.InternalType.Command;
+    /**
+     * The type of the command.
+     */
+    public type: Command.Type;
 
     /**
      * What kinds of command this is, sets wether or not this command is
@@ -91,12 +89,12 @@ export abstract class Command extends Base {
     /**
      * The category this command might belong to.
      */
-    public category: string | undefined;
+    public category: string;
 
     /**
      * The options for the command.
      */
-    public options: Array<Command | CommandOptions | Discord.ApplicationCommandOptionData>;
+    public options: (Command | Discord.ApplicationCommandOptionData)[];
 
     /**
      * The preconditions for the command.
@@ -106,41 +104,20 @@ export abstract class Command extends Base {
     public constructor(options: CommandOptions) {
         super();
 
-        const schema = Joi.object({
-            type: Joi.string()
-                .valid(...Object.values(Command.Type))
-                .required(),
-            name: Joi.string()
-                .regex(/^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u)
-                .required(),
-            aliases: Joi.array()
-                .items(
-                    Joi.string()
-                        .regex(/^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u)
-                        .required(),
-                )
-                .default([]),
-            description: Joi.string().default('-'),
-            category: Joi.string().optional(),
-            kinds: Joi.array()
-                .items(Joi.string().valid(...Object.values(Command.Kind)))
-                .default([]),
-            options: Joi.array().items(Joi.any()).default([]),
-            preconditions: Joi.array().items(Joi.any()).default([]),
-        });
+        this.type = s.nativeEnum(Command.Type).parse(options.type);
+        this.kinds = s.nativeEnum(Command.Kind).array.parse(options.kinds);
+        const regex =
+            this.type === Command.Type.ChatInput
+                ? /^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u
+                : /^[\w -]{3,32}$/;
+        this.name = s.string.regex(regex).parse(options.name);
+        this.aliases = s.string.regex(regex).array.parse(options.aliases ?? []);
+        this.description = s.string.lengthLessThan(101).parse(options.description ?? '');
+        this.category = s.string.optional.parse(options.category ?? '');
+        this.options = s.any.array.parse(options.options ?? []);
 
-        const { error, value } = schema.validate(options);
-        if (error !== undefined) throw error;
-
-        this.type = value.type;
-        this.name = value.name;
-        this.aliases = value.aliases;
-        this.description = value.description;
-        this.category = value.category;
-        this.kinds = value.kinds;
-        this.options = value.options;
-
-        value.preconditions.forEach((p: any) => this.preconditions.add(p));
+        const preconditions = s.any.array.parse(options.preconditions ?? []);
+        preconditions.forEach((p) => this.preconditions.add(p));
     }
 
     /**
@@ -149,8 +126,8 @@ export abstract class Command extends Base {
      * @returns {Promise<unknown>}
      * @abstract
      */
-    public async onChatInput(interaction: Discord.ChatInputCommandInteraction): Promise<unknown> {
-        if (this.internalType === Command.InternalType.Group) {
+    public async onChatInput(interaction: Command.ChatInput): Promise<unknown> {
+        if (this.subType === Command.SubType.Group) {
             const commandName =
                 interaction.options.getSubcommandGroup() || interaction.options.getSubcommand();
             Reflect.set(interaction.options, '_group', null);
@@ -176,7 +153,7 @@ export abstract class Command extends Base {
      * @abstract
      */
     public async onMessage(message: Command.Message, args: Command.Arguments): Promise<unknown> {
-        if (this.internalType === Command.InternalType.Group) {
+        if (this.subType === Command.SubType.Group) {
             const single = args.single();
             const command = this.options.find((c) => c.name === single);
             // if (command instanceof Command) return command.onMessage(message, args);
@@ -199,7 +176,8 @@ export abstract class Command extends Base {
      * @returns {Promise<unknown>}
      * @abstract
      */
-    public onUserContextMenu(_: Command.UserContextMenu): Promise<unknown> {
+    public onUserContextMenu(menu: Command.UserContextMenu): Promise<unknown> {
+        void menu;
         throw new Error('COMMAND_MISSING_METHOD', this.name, 'onUserContextMenu');
     }
 
@@ -209,29 +187,98 @@ export abstract class Command extends Base {
      * @returns {Promise<unknown>}
      * @abstract
      */
-    public onMessageContextMenu(_: Command.MessageContextMenu): Promise<unknown> {
+    public onMessageContextMenu(menu: Command.MessageContextMenu): Promise<unknown> {
+        void menu;
         throw new Error('COMMAND_MISSING_METHOD', this.name, 'onMessageContextMenu');
+    }
+
+    /**
+     * When a autocomplete interaction is received for this command.
+     * @param autocomplete {Command.Autocomplete} The autocomplete
+     * @abstract
+     */
+    public async onAutocomplete(autocomplete: Command.Autocomplete): Promise<unknown> {
+        if (this.subType === Command.SubType.Group) {
+            const commandName =
+                autocomplete.options.getSubcommandGroup() || autocomplete.options.getSubcommand();
+            Reflect.set(autocomplete.options, '_group', null);
+            const command = this.options.find((c) => c.name === commandName);
+
+            if (!(command instanceof Command)) return undefined;
+            return command.onAutocomplete(autocomplete);
+        }
+
+        throw new Error('COMMAND_MISSING_METHOD', this.name, 'onChatInput');
+    }
+
+    public toJSON(): Discord.ApplicationCommandData | Discord.ApplicationCommandData[] {
+        if (this.type === Command.Type.ContextMenu) {
+            return this.kinds.map((kind) => ({
+                type:
+                    kind === Command.Kind.Message
+                        ? Discord.ApplicationCommandType.Message
+                        : Discord.ApplicationCommandType.User,
+                name: this.name,
+            }));
+        }
+        return {
+            type:
+                this.internalType === Command.InternalType.Base
+                    ? Discord.ApplicationCommandType.ChatInput
+                    : this.internalType === Command.InternalType.Group
+                    ? Discord.ApplicationCommandOptionType.SubcommandGroup
+                    : this.internalType === Command.InternalType.Sub
+                    ? Discord.ApplicationCommandOptionType.Subcommand
+                    : Discord.ApplicationCommandOptionType.Subcommand,
+            name: this.name,
+            description: this.description,
+            options: this.options.map((o) => Reflect.get(o, 'toJSON')?.bind(o)() ?? o),
+        } as any;
     }
 }
 
 export namespace Command {
-    export type Arguments = Args;
-    export type Options = CommandOptions;
-    export type ChatInput = Discord.ChatInputCommandInteraction;
-    export type UserContextMenu = Discord.UserContextMenuCommandInteraction;
-    export type MessageContextMenu = Discord.MessageContextMenuCommandInteraction;
-    export type ContextMenu = UserContextMenu | MessageContextMenu;
-    export type Message = Discord.Message;
-    export import Type = Discord.ApplicationCommandType;
-    export import OptionType = Discord.ApplicationCommandOptionType;
-
     export enum InternalType {
-        Command = 1,
+        Base = 1,
         Group,
+        Sub,
+    }
+
+    export enum SubType {
+        Group = 1,
+        Command,
+    }
+
+    export enum Type {
+        ChatInput = 1,
+        ContextMenu,
     }
 
     export enum Kind {
-        Prefix = 1,
-        Interaction,
+        User = 1,
+        Message,
+        Slash,
+        Prefix,
     }
+
+    export type Options = CommandOptions;
+
+    export type Message = Discord.Message;
+    export const { Message } = Discord;
+    export type Arguments = Args;
+    export const Arguments = Args;
+
+    export type OptionType = Discord.ApplicationCommandOptionType;
+    export const OptionType = Discord.ApplicationCommandOptionType;
+
+    export type ChatInput = Discord.ChatInputCommandInteraction;
+    export const ChatInput = Discord.ChatInputCommandInteraction;
+    export type Autocomplete = Discord.AutocompleteInteraction;
+    export const Autocomplete = Discord.AutocompleteInteraction;
+    export type UserContextMenu = Discord.UserContextMenuCommandInteraction;
+    export const UserContextMenu = Discord.UserContextMenuCommandInteraction;
+    export type MessageContextMenu = Discord.MessageContextMenuCommandInteraction;
+    export const MessageContextMenu = Discord.MessageContextMenuCommandInteraction;
+    export type CommandInteraction = Discord.CommandInteraction;
+    export const { CommandInteraction } = Discord;
 }

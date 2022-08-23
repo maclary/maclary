@@ -11,7 +11,9 @@ export class GuildOwnerOnly extends Precondition {
         return this.sharedRun(interaction.guildId, interaction.user.id);
     }
 
-    public override contextMenuRun(interaction: Command.ContextMenu): Promise<Result> {
+    public override contextMenuRun(
+        interaction: Command.MessageContextMenu | Command.UserContextMenu,
+    ): Promise<Result> {
         return this.sharedRun(interaction.guildId, interaction.user.id);
     }
 

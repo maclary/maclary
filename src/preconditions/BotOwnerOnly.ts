@@ -11,7 +11,9 @@ export class BotOwnerOnly extends Precondition {
         return this.sharedRun(interaction.user.id);
     }
 
-    public override contextMenuRun(interaction: Command.ContextMenu): Result {
+    public override contextMenuRun(
+        interaction: Command.MessageContextMenu | Command.UserContextMenu,
+    ): Result {
         return this.sharedRun(interaction.user.id);
     }
 

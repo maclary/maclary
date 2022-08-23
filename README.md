@@ -2,9 +2,9 @@
     <img alt="hairy maclary" src=".github/assets/maclary.png" width="30%"/>
     <h1>Maclary</h1><br/>
     <h3>The prefect Discord bot framework</h3><br/>
-    <code>npm install maclary discord.js@dev</code><br/>
-    <code>yarn add maclary discord.js@dev</code><br/>
-    <code>pnpm add maclary discord.js@dev</code><br/>
+    <code>npm install maclary discord.js</code><br/>
+    <code>yarn add maclary discord.js</code><br/>
+    <code>pnpm add maclary discord.js</code><br/>
 </div>
 
 <div align="center">
@@ -61,7 +61,7 @@ It is very important that you include the `main` field within your package.json.
 src/index.js
 
 ```js
-process.env.NODE_ENV = 'development';
+process.env.NODE_ENV = 'development'; // IMPORTANT!
 const { MaclaryClient } = require('maclary');
 const { Partials } = require('discord.js');
 
@@ -73,8 +73,7 @@ const client = new MaclaryClient({
     developmentGuildId: '123456789012345678',
 });
 
-const token =
-    process.env.NODE_ENV === 'development' ? 'development_bot_token' : 'production_bot_token';
+const token = process.env.BOT_TOKEN;
 client.login(token);
 ```
 
@@ -88,11 +87,11 @@ const actionRow = new ActionRowBuilder().addComponents([
     new ButtonBuilder().setStyle(ButtonStyle.Primary).setLabel('Ping Me!'),
 ]);
 
-module.exports = class Echo extends Command {
+module.exports = class ChatInputEcho extends Command {
     constructor() {
         super({
             type: Command.Type.ChatInput,
-            kinds: [Command.Kind.Prefix, Command.Kind.Interaction],
+            kinds: [Command.Kind.Slash, Command.Kind.Prefix],
             preconditions: [Preconditions.GuildOnly],
             name: 'echo',
             description: 'Echos the input.',

@@ -81,7 +81,7 @@ export class PreconditionsContainer extends Base {
      * @param command Command object
      */
     public async contextMenuRun(
-        interaction: Command.ContextMenu,
+        interaction: Command.MessageContextMenu | Command.UserContextMenu,
         command: Command,
     ): Promise<Result> {
         for (const entrie of this.entries) {

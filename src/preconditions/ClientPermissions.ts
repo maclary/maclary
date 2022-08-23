@@ -41,7 +41,9 @@ export function ClientPermissions(permissions: PermissionResolvable): typeof Pre
             return this.sharedRun(permissions);
         }
 
-        public override async contextMenuRun(interaction: Command.ContextMenu): Promise<Result> {
+        public override async contextMenuRun(
+            interaction: Command.MessageContextMenu | Command.UserContextMenu,
+        ): Promise<Result> {
             const channel = await this.fetchChannelFromId(interaction.channelId);
             const permissions = interaction.inGuild()
                 ? channel.permissionsFor(interaction.applicationId)
