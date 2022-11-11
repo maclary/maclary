@@ -62,6 +62,8 @@ jobs:
       - name: Public package
         if: steps.determine-tag.outputs.tag != ''
         run: |
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+
           TAG=${{ steps.determine-tag.outputs.tag }}
           VERSION="${TAG}.$(git rev-parse --verify --short HEAD)"
 
