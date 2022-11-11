@@ -9,7 +9,7 @@ jobs:
   deprecate-on-merge:
     name: NPM Deprecate PR Versions On Merge
     runs-on: ubuntu-latest
-    if: github.repository_owner = 'maclary'
+    if: github.repository_owner == 'maclary'
     steps:
       - name: Checkout project
         uses: actions/checkout@v3
