@@ -11,6 +11,12 @@ on:
       - main
 
 jobs:
+  linting:
+    uses: ./.github/workflows/continuous-integration.yml
+  
+  building:
+    uses: ./.github/workflows/continuous-integration.yml
+
   publish:
     name: Publish Next to NPM
     needs: [linting, building]
