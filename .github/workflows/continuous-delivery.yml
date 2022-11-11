@@ -55,16 +55,18 @@ jobs:
           # Dispatch, pull request
           elif [[ ${{ github.event.inputs.pull_request != '' }} ]]
           then
-            echo '::set-output name=tag::pr-${{ github.event.inputs.pull_request }}'
+            NUMBER=${{ github.event.inputs.pull_request }}
+            echo "::set-output name=tag::pr-${NUMBER}"
           fi
 
       - name: Public package
         if: steps.determine-tag.outputs.tag != ''
         run: |
           TAG=${{ steps.determine-tag.outputs.tag }}
-          VERSION='${TAG}.$(git rev-parse --verify --short HEAD)'
+          ID=${{ git rev-parse --short HEAD }}
+          VERSION=${{ echo "${TAG}.${ID}" }}
 
           pnpm release --preid ${VERSION}
-          npm publish --tag ${TAG}
+          pnpm publish --tag ${TAG}
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
