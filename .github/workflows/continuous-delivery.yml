@@ -66,6 +66,6 @@ jobs:
           VERSION="${TAG}.$(git rev-parse --verify --short HEAD)"
 
           pnpm release --preid ${VERSION}
-          pnpm publish --tag ${TAG}
+          pnpm publish --tag ${TAG} --no-git-checks
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
