@@ -1,69 +1,66 @@
-import { Precondition, Result } from '../structures/Precondition';
-import type { Command } from '../structures/Command';
-import {
-    PermissionsBitField,
-    PermissionResolvable,
-    BaseGuildTextChannel,
-    GuildTextBasedChannel,
-} from 'discord.js';
+import type { PermissionResolvable, Snowflake } from 'discord.js';
+import { PermissionsBitField } from 'discord.js';
+import { container } from '#/container';
+import type { Action } from '#/structures/Action';
+import type { Command } from '#/structures/Command';
+import { Precondition } from '#/structures/Precondition';
 
-const dmChannelPermissions = new PermissionsBitField(
-    new PermissionsBitField([
-        'AddReactions',
-        'AttachFiles',
-        'EmbedLinks',
-        'ReadMessageHistory',
-        'SendMessages',
-        'UseExternalEmojis',
-        'ViewChannel',
-    ]).bitfield & PermissionsBitField.All,
-);
+const dmChannelPermissions = new PermissionsBitField([
+    'SendMessages',
+    // 'PinMessages',
+    'EmbedLinks',
+    'AttachFiles',
+    'ReadMessageHistory',
+    'MentionEveryone',
+    'UseExternalEmojis',
+    'UseExternalStickers',
+    'AddReactions',
+]);
 
-export function ClientPermissions(permissions: PermissionResolvable): typeof Precondition {
+/**
+ * Precondition that ensures that the client has the required permissions.
+ * @param permissions The permissions that the client needs to have.
+ */
+export function ClientPermissions(permissions: PermissionResolvable) {
     const required = new PermissionsBitField(permissions);
 
-    return class ClientPrecondition extends Precondition {
-        public override messageRun(message: Command.Message): Result {
-            const channel = message.channel as BaseGuildTextChannel;
-            const userId = message.client?.application?.id;
-            if (!userId) return this.error('I was unable to determine my own permissions.');
-            const permissions = message.guildId
-                ? channel.permissionsFor(userId)
-                : dmChannelPermissions;
-            return this.sharedRun(permissions);
-        }
+    async function sharedRun(
+        parent: Action.AnyInteraction | Command.AnyInteraction | Command.Message
+    ) {
+        const permissions = await permissionsIn(parent.channelId);
+        return checkPermissions(required, permissions);
+    }
 
-        public override async chatInputRun(interaction: Command.ChatInput): Promise<Result> {
-            const channel = await this.fetchChannelFromId(interaction.channelId);
-            const permissions = interaction.inGuild()
-                ? channel.permissionsFor(interaction.applicationId)
-                : dmChannelPermissions;
-            return this.sharedRun(permissions);
-        }
+    return class ClientPermissions extends Precondition {
+        public prefixRun = sharedRun;
 
-        public override async contextMenuRun(
-            interaction: Command.MessageContextMenu | Command.UserContextMenu,
-        ): Promise<Result> {
-            const channel = await this.fetchChannelFromId(interaction.channelId);
-            const permissions = interaction.inGuild()
-                ? channel.permissionsFor(interaction.applicationId)
-                : dmChannelPermissions;
-            return this.sharedRun(permissions);
-        }
+        public slashRun = sharedRun;
 
-        public sharedRun(permissions: PermissionsBitField | null): Result {
-            if (!permissions) return this.error('I was unable to determind my own permissions.');
+        public contextMenuRun = sharedRun;
 
-            const missing = permissions.missing(required);
-            if (missing.length < 1) return this.ok();
-            return this.error(
-                'I require, yet am missing, the following permissions ' +
-                    `to run this command: ${missing.join(', ')}`,
-            );
-        }
-
-        private async fetchChannelFromId(channelId: string): Promise<GuildTextBasedChannel> {
-            return (await this.container.client.channels.fetch(channelId)) as GuildTextBasedChannel;
-        }
+        public actionRun = sharedRun;
     };
+}
+
+async function permissionsIn(channelId: Snowflake | null) {
+    if (!channelId) return dmChannelPermissions;
+
+    const channel = await container.client.channels.fetch(channelId);
+    if (!channel || channel.isDMBased()) return dmChannelPermissions;
+
+    const clientId = container.client.user.id;
+    return channel.permissionsFor(clientId);
+}
+
+async function checkPermissions(
+    required: PermissionsBitField,
+    permissions: PermissionsBitField | null
+) {
+    if (!permissions) return Precondition.Result.error('CouldNotDetermineClientPermissions');
+
+    const missing = permissions.missing(required);
+    if (missing.length === 0) return Precondition.Result.ok();
+
+    const missingField = new PermissionsBitField(missing);
+    return Precondition.Result.error('ClientPermissions', missingField);
 }

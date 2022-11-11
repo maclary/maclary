@@ -1,37 +1,34 @@
-// Check for Discord.js version 14
-import { version } from 'discord.js';
-const major = Number.parseInt(version.split('.')[0], 10);
-import { Error } from './errors';
-if (major !== 14) throw new Error('UNSUPPORTED_DJS_VERSION');
-
-export { container } from './container';
-export type { Container } from './container';
-
-// Structures
-export * from './structures/Args';
-export * from './structures/Base';
-export * from './structures/Client';
-export * from './structures/Command';
-export * from './structures/Component';
-export * from './structures/Event';
-export * from './structures/Plugin';
-export * from './structures/Precondition';
-export * as Preconditions from './preconditions/index';
+// Root
+export * from './lib/container';
+export * from './lib/types';
 
 // Managers
-export * from './managers/BaseManager';
-export * from './managers/CommandManager';
-export * from './managers/ComponentManager';
-export * from './managers/EventManager';
-export * from './managers/MapManager';
-export * from './managers/PluginManager';
-export * from './managers/SetManager';
+export * from './lib/managers/ActionManager';
+export * from './lib/managers/BaseManager';
+export * from './lib/managers/CommandManager';
+export * from './lib/managers/ListenerManager';
+export * from './lib/managers/PluginManager';
 
-// Errors
-export * from './errors';
+// Preconditions
+export * from './lib/structures/Precondition';
+export * as Preconditions from './preconditions';
 
-// Types
-export { Events } from './types/Events';
+// Structures
+export * from './lib/structures/Action';
+export * from './lib/structures/Arguments';
+export * from './lib/structures/Base';
+export * from './lib/structures/Command';
+export * from './lib/structures/Listener';
+export * from './lib/structures/Maclary';
+export * from './lib/structures/Plugin';
 
-// Utils
-export * as Regexes from './utils/Regexes';
+// Utilities
+export * from './lib/utilities/Events';
+export * as Regexes from './lib/utilities/Regexes';
+
+/**
+ * The current version that you are currently using.
+ * @since 1.0.0
+ */
+// eslint-disable-next-line @typescript-eslint/no-inferrable-types
+export const version: string = '[VI]{{inject}}[/VI]';

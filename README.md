@@ -1,163 +1,139 @@
 <div align="center">
-    <img alt="hairy maclary" src=".github/assets/maclary.png" width="30%"/>
-    <h1>Maclary</h1><br/>
-    <h3>The prefect Discord bot framework</h3><br/>
-    <code>npm install maclary discord.js</code><br/>
-    <code>yarn add maclary discord.js</code><br/>
-    <code>pnpm add maclary discord.js</code><br/>
-</div>
 
-<div align="center">
-    <!-- row 1 -->
-    <a href="https://github.com/maclary">
-        <img alt="maclary version" src="https://img.shields.io/npm/v/maclary?color=red&label=maclary"/>
-    </a>
-    <a href="https://npmjs.com/package/maclary">
-        <img alt="total downloads" src="https://img.shields.io/npm/dt/maclary"/>
-    </a><br/>
-    <!-- row 2 -->
-    <a href="https://github.com/maclary/maclary/">
-        <img alt="top language" src="https://img.shields.io/github/languages/top/maclary/maclary">
-    </a>
-    <a href="https://bundlephobia.com/package/maclary">
-        <img alt="maclary code size" src="https://img.shields.io/bundlephobia/minzip/maclary?label=code%20size">
-    </a><br/>
-    <!-- row 3 -->
-    <a href="https://github.com/maclary/maclary/blob/main/LICENSE">
-        <img alt="license" src="https://img.shields.io/npm/l/maclary">
-    </a>
-    <a href="https://github.com/maclary/maclary/">
-        <img alt="github commit activity" src="https://img.shields.io/github/commit-activity/m/maclary/maclary">
-    </a><br/>
-</div>
+![Hairy Maclary](./.github/assets/maclary.png)
 
-# Description
+# Maclary
 
-Maclary is a Discord bot framework intended to make developing bots a lot faster and easier, with built in command, event and component handling.
+## The perfect Discord bot framework
 
-It is named after Hairy Maclary, a character from the New Zealand childrens book series of the same name.
-
-Maclary is still in its early stages, please report any bugs you may find.
-
-<div align="center">
-    <a href="https://maclary.github.io/maclary">Documentation</a>
-    <p>Better documentation and guides coming soon!</p>
-</div>
-
-# Features
-
--   Built in command, event and component handling
--   Use of arguments and preconditions
--   Advanced subcommand creation system
--   Ability to use plugins
--   Written in TypeScript
-
-# Getting Started
-
-Maclary requires Discord.js v14 to work, which is currently in development (`npm install discord.js@dev`).
-
-It is very important that you include the `main` field within your package.json.
-
-src/index.js
-
-```js
-process.env.NODE_ENV = 'development'; // IMPORTANT!
-const { MaclaryClient } = require('maclary');
-const { Partials } = require('discord.js');
-
-const client = new MaclaryClient({
-    intents: ['Guilds', 'GuildMessages', 'DirectMessages', 'MessageContent'],
-    partials: [Partials.Channel],
-    defaultPrefix: '!',
-    developmentPrefix: 'dev!',
-    developmentGuildId: '123456789012345678',
-});
-
-const token = process.env.BOT_TOKEN;
-client.login(token);
+```bash
+npm install maclary discord.js
+yarn add maclary discord.js
+pnpm add maclary discord.js
 ```
 
-src/commands/echo.js
+</div>
 
-```js
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const { Command, Preconditions } = require('maclary');
+<div align="center">
 
-const actionRow = new ActionRowBuilder().addComponents([
-    new ButtonBuilder().setStyle(ButtonStyle.Primary).setLabel('Ping Me!'),
-]);
+[![Version](https://img.shields.io/npm/v/maclary?color=red&label=maclary)](https://github.com/maclary/maclary)
+[![Total Downloads](https://img.shields.io/npm/dt/maclary)](https://npmjs.com/maclary)
 
-module.exports = class ChatInputEcho extends Command {
-    constructor() {
+</div>
+
+## 🤔 About
+
+`maclary` is a Discord bot framework intended for making the process of
+creating complex Discord bots easier.
+
+<!-- <div align="center" style="padding-top: 2rem; padding-bottom: 1rem">
+
+| [**Click here for the documentation and guides**](https://maclary.apteryx.xyz) |
+| ------------------------------------------------------------------------------ |
+
+</div> -->
+
+### Features
+
+- Built-in command, listener and interaction handling
+- Create both slash and prefix commands
+- Use of preconditions and message arguments
+- Directory based subcommand creation system
+- Ability to use community-made plugins
+- Written in TypeScript
+
+## 🌐 Examples
+
+Maclary requires version 14 of Discord.js in order to work.
+
+> **_NOTE:_**  It is important that you include the `main` field within your `package.json`, this is used to find your commands, listeners and actions.
+
+These examples show how to use `maclary` in TypeScript, however it will work in JavaScript with `require` or `import`.
+
+> src/index.ts
+
+```ts
+import { Client } from 'discord.js';
+import { Maclary } from 'maclary';
+
+const client = new Client({ ... });
+const maclary = new Maclary({ ... });
+Maclary.init(maclary, client);
+
+client.login("DISCORD TOKEN");
+
+```
+
+> src/commands/echo.ts
+
+```ts
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { Command, Preconditions } from 'maclary';
+
+function makePingMeButton(userId: string) {
+    return new ActionRowBuilder()
+        .addComponents([
+            new ButtonBuilder()
+                .setStyle(ButtonStyle.Primary)
+                .setLabel('Ping Me!')
+                .setCustomId(`pingUser,${userId}`)
+        ]);
+}
+
+export class EchoCommand extends Command<
+    Command.Type.ChatInput,
+    [Command.Kind.Slash, Command.Kind.Prefix]
+> {
+    public constructor() {
         super({
             type: Command.Type.ChatInput,
             kinds: [Command.Kind.Slash, Command.Kind.Prefix],
             preconditions: [Preconditions.GuildOnly],
             name: 'echo',
-            description: 'Echos the input.',
-            aliases: ['say'],
-            options: [
-                {
-                    type: Command.OptionType.String,
-                    name: 'input',
-                    description: 'The text to echo.',
-                },
-            ],
+            description: 'Echo the input.',
+            options: [{
+                type: Command.OptionType.String,
+                name: 'input',
+                description: 'The text to echo.'
+            }]
         });
     }
 
-    async onMessage(message, args) {
-        const content = args.rest();
-        actionRow.components[0].setCustomId(`pingUser,${message.author.id}`);
-        await message.reply({ content, components: [actionRow] });
+    public override async onSlash(input: Command.ChatInput) {
+        const content = input.options.getString('input');
+        const components = [makePingMeButton(input.user.id)];
+        await input.reply({ content, components });
     }
 
-    async onChatInput(interaction) {
-        const content = interaction.options.getString('input');
-        actionRow.components[0].setCustomId(`pingUser,${interaction.user.id}`);
-        await interaction.reply({ content, components: [actionRow] });
+    public override async onPrefix(message: Command.Message, args: Command.Arguments) {
+        const content = args.rest();
+        const components = [makePingMeButton(message.author.id)];
+        await message.reply({ content, components });
     }
-};
+}
 ```
 
-src/components/pingUser.js
+> src/actions/pingUser.js
 
-```js
-const { Component } = require('maclary');
+```ts
+import { Action, Preconditions } from 'maclary';
 
-module.exports = class PingUser extends Component {
-    constructor() {
-        super({ id: 'pingUser' });
+export class PingUserAction extends Action {
+    public constructor() {
+        super({
+            id: 'pingUser',
+            preconditions: [Preconditions.GuildOnly],
+        });
     }
 
-    async onButton(button) {
+    public override async onButton(button: Action.Button) {
         const [, userId] = button.customId.split(',');
         const user = await this.container.client.users.fetch(userId);
         await button.reply(user.toString());
-    }
-};
+    } 
+}
 ```
 
 And that is it! Maclary will handle the rest.
 
-# Command Categories
-
-You can set the categories for commands by placing them in a folder that starts with `@`.
-
-For example, `commands/@moderator/kick.js`.
-
-# Subcommands
-
-Maclary allows you to create subcommands using folders that start with `!`.
-
-For example, `commands/!sub/command.js`, `commands/!sub/command/group.js`, `commands/@category/!sub/command.js`.
-
-# Patching Commands
-
-Whenever you restart your bot, Maclary will compare your local application commands with the ones on Discord. If there are any differences, Maclary will automatically update your commands, otherwise skip.
-
-This will help in preventing you from reaching Discords global rate limit of 200 application command creates per day, per guild.
-
-# Plugins
-
-The already made plugins will become available soon, when documentation is created for them.
+More documention and guides will come when the website is ready.

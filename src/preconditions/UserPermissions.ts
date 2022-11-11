@@ -1,58 +1,66 @@
-import { Precondition, Result } from '../structures/Precondition';
-import type { Command } from '../structures/Command';
-import { PermissionsBitField, PermissionResolvable, TextChannel, NewsChannel } from 'discord.js';
+import type { PermissionResolvable, Snowflake } from 'discord.js';
+import { PermissionsBitField } from 'discord.js';
+import { container } from '#/container';
+import type { Action } from '#/structures/Action';
+import type { Command } from '#/structures/Command';
+import { Precondition } from '#/structures/Precondition';
 
-const dmChannelPermissions = new PermissionsBitField(
-    new PermissionsBitField([
-        'AddReactions',
-        'AttachFiles',
-        'EmbedLinks',
-        'ReadMessageHistory',
-        'SendMessages',
-        'UseExternalEmojis',
-        'ViewChannel',
-        'UseExternalStickers',
-        'MentionEveryone',
-    ]).bitfield & PermissionsBitField.All,
-);
+const dmChannelPermissions = new PermissionsBitField([
+    'SendMessages',
+    // 'PinMessages',
+    'EmbedLinks',
+    'AttachFiles',
+    'ReadMessageHistory',
+    'MentionEveryone',
+    'UseExternalEmojis',
+    'UseExternalStickers',
+    'AddReactions',
+]);
 
-export function UserPermissions(permissions: PermissionResolvable): typeof Precondition {
+/**
+ * Precondition that ensures that the client has the required permissions.
+ * @param permissions The permissions that the client needs to have.
+ */
+export function UserPermissions(permissions: PermissionResolvable) {
     const required = new PermissionsBitField(permissions);
 
+    async function sharedRun(
+        parent: Action.AnyInteraction | Command.AnyInteraction | Command.Message
+    ) {
+        const userId = 'author' in parent ? parent.author.id : parent.user.id;
+        const permissions = await permissionsIn(userId, parent.channelId);
+        return checkPermissions(required, permissions);
+    }
+
     return class UserPermissions extends Precondition {
-        public override messageRun(message: Command.Message): Result {
-            const channel = message.channel as TextChannel | NewsChannel;
-            const permissions = message.guild
-                ? channel.permissionsFor(message.author)
-                : dmChannelPermissions;
-            return this.sharedRun(permissions);
-        }
+        public prefixRun = sharedRun;
 
-        public override chatInputRun(interaction: Command.ChatInput): Result {
-            const permissions = interaction.inGuild()
-                ? interaction.memberPermissions
-                : dmChannelPermissions;
-            return this.sharedRun(permissions);
-        }
+        public slashRun = sharedRun;
 
-        public override contextMenuRun(
-            interaction: Command.MessageContextMenu | Command.UserContextMenu,
-        ): Result {
-            const permissions = interaction.inGuild()
-                ? interaction.memberPermissions
-                : dmChannelPermissions;
-            return this.sharedRun(permissions);
-        }
+        public contextMenuRun = sharedRun;
 
-        public sharedRun(permissions: PermissionsBitField | null): Result {
-            if (!permissions) return this.error('I was unable to determind your permissions.');
-
-            const missing = permissions.missing(required);
-            if (missing.length < 1) return this.ok();
-            return this.error(
-                'You are missing the following permissions ' +
-                    `to run this command: ${missing.join(', ')}`,
-            );
-        }
+        public actionRun = sharedRun;
     };
+}
+
+async function permissionsIn(userId: Snowflake, channelId: Snowflake | null) {
+    if (!channelId) return dmChannelPermissions;
+
+    const channel = await container.client.channels.fetch(channelId);
+    if (!channel || channel.isDMBased()) return dmChannelPermissions;
+
+    return channel.permissionsFor(userId);
+}
+
+async function checkPermissions(
+    required: PermissionsBitField,
+    permissions: PermissionsBitField | null
+) {
+    if (!permissions) return Precondition.Result.error('CouldNotDetermineUserPermissions');
+
+    const missing = permissions.missing(required);
+    if (missing.length === 0) return Precondition.Result.ok();
+
+    const missingField = new PermissionsBitField(missing);
+    return Precondition.Result.error('UserPermissions', missingField);
 }

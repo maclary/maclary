@@ -1,0 +1,55 @@
+name: Continuous Delivery
+
+on:
+  workflow_dispatch:
+    inputs:
+      pull_request:
+        description: The number of the PR that is being deployed.
+        required: true
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    name: Publish Next to NPM
+    runs-on: ubuntu-latest
+    if: github.repository_owner = "maclary"
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'pnpm'
+
+      - run: echo "::add-matcher::.github/problemMatchers/tsc.json"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build project
+        run: pnpm build
+
+      - id: determine-tag
+        run: |
+          # Push, next
+          if [[ ${{ github.event_name }} = "push" ]] then
+            echo "::set-output name=tag::next"
+
+          # Dispatch, pull request
+          elif [[ ${{ github.event.inputs.pull_request != "" }} ]] then
+            echo "::set-output name=tag::pr-${{ github.event.inputs.pull_request }}"
+
+      - name: Public package
+        if: steps.determine-tag.outputs.tag != ""
+        run: |
+          TAG=${{ steps.determine-tag.outputs.tag }}
+          VERSION="${TAG}.$(git rev-parse --verify --short HEAD)"
+
+          pnpm release --preid ${VERSION}
+          npm publish --tag ${TAG}
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

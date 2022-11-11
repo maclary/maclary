@@ -1,28 +1,33 @@
-import { Precondition, type Result } from '../structures/Precondition';
-import type { Command } from '../structures/Command';
-import { container } from '../container';
+import type { Snowflake } from 'discord.js';
+import type { Action } from '#/structures/Action';
+import type { Command } from '#/structures/Command';
+import { Precondition } from '#/structures/Precondition';
 
+/**
+ * Precondition that ensures that the user is the owner of the guild this is used in.
+ * @since 1.0.0
+ */
 export class GuildOwnerOnly extends Precondition {
-    public override messageRun(message: Command.Message): Promise<Result> {
-        return this.sharedRun(message.guildId, message.author.id);
+    public async prefixRun(message: Command.Message) {
+        return this._sharedRun(message.author.id, message.guildId);
     }
 
-    public override chatInputRun(interaction: Command.ChatInput): Promise<Result> {
-        return this.sharedRun(interaction.guildId, interaction.user.id);
+    public slashRun = this._interactionRun;
+
+    public contextMenuRun = this._interactionRun;
+
+    public actionRun = this._interactionRun;
+
+    private async _interactionRun(interaction: Action.AnyInteraction | Command.AnyInteraction) {
+        return this._sharedRun(interaction.user.id, interaction.guildId);
     }
 
-    public override contextMenuRun(
-        interaction: Command.MessageContextMenu | Command.UserContextMenu,
-    ): Promise<Result> {
-        return this.sharedRun(interaction.guildId, interaction.user.id);
-    }
-
-    private async sharedRun(guildId: string | null, userId: string): Promise<Result> {
-        if (!guildId) return this.error('You cannot use this command in DMs.');
-        const guild = await container.client.guilds.fetch(guildId);
-        if (!guild) return this.error('Unable to determine the server owner.');
+    private async _sharedRun(userId: Snowflake, guildId: Snowflake | null) {
+        if (!guildId) return this.error('GuildOnly');
+        const guild = await this.container.client.guilds.fetch(guildId);
+        if (!guild) return this.error('GuildOnly');
 
         if (guild.ownerId === userId) return this.ok();
-        return this.error('This command is limited to the server owner!');
+        return this.error('GuildOwnerOnly');
     }
 }
