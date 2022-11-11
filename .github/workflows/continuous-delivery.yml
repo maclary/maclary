@@ -15,7 +15,7 @@ jobs:
     name: Publish Next to NPM
     needs: [linting, building]
     runs-on: ubuntu-latest
-    if: github.repository_owner = "maclary"
+    if: github.repository_owner = 'maclary'
     steps:
       - name: Checkout project
         uses: actions/checkout@v3
@@ -31,7 +31,7 @@ jobs:
           node-version: 18
           cache: 'pnpm'
 
-      - run: echo "::add-matcher::.github/problemMatchers/tsc.json"
+      - run: echo '::add-matcher::.github/problemMatchers/tsc.json'
 
       - name: Install dependencies
         run: pnpm install
@@ -42,18 +42,18 @@ jobs:
       - id: determine-tag
         run: |
           # Push, next
-          if [[ ${{ github.event_name }} = "push" ]] then
-            echo "::set-output name=tag::next"
+          if [[ ${{ github.event_name }} == 'push' ]] then
+            echo '::set-output name=tag::next'
 
           # Dispatch, pull request
-          elif [[ ${{ github.event.inputs.pull_request != "" }} ]] then
-            echo "::set-output name=tag::pr-${{ github.event.inputs.pull_request }}"
+          elif [[ ${{ github.event.inputs.pull_request != '' }} ]] then
+            echo '::set-output name=tag::pr-${{ github.event.inputs.pull_request }}'
 
       - name: Public package
-        if: steps.determine-tag.outputs.tag != ""
+        if: steps.determine-tag.outputs.tag != ''
         run: |
           TAG=${{ steps.determine-tag.outputs.tag }}
-          VERSION="${TAG}.$(git rev-parse --verify --short HEAD)"
+          VERSION='${TAG}.$(git rev-parse --verify --short HEAD)'
 
           pnpm release --preid ${VERSION}
           npm publish --tag ${TAG}

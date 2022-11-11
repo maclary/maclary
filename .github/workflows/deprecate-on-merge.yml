@@ -9,7 +9,7 @@ jobs:
   deprecate-on-merge:
     name: NPM Deprecate PR Versions On Merge
     runs-on: ubuntu-latest
-    if: github.repository_owner = "maclary"
+    if: github.repository_owner = 'maclary'
     steps:
       - name: Checkout project
         uses: actions/checkout@v3
@@ -26,6 +26,6 @@ jobs:
           cache: 'pnpm'
 
       - name: Deprecate version
-        run: pnpm npm-deprecate --name "*pr-${{ github.event.number }}" --package "maclary"
+        run: pnpm npm-deprecate --name '*pr-${{ github.event.number }}' --package 'maclary'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -8,7 +8,7 @@ jobs:
   auto-deprecate:
     name: NPM Auto Deprecate
     runs-on: ubuntu-latest
-    if: github.repository_owner = "maclary"
+    if: github.repository_owner = 'maclary'
     steps:
       - name: Checkout project
         uses: actions/checkout@v3
