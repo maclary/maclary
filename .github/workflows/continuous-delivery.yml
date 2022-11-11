@@ -63,8 +63,7 @@ jobs:
         if: steps.determine-tag.outputs.tag != ''
         run: |
           TAG=${{ steps.determine-tag.outputs.tag }}
-          ID=${{ git rev-parse --short HEAD }}
-          VERSION=${{ echo "${TAG}.${ID}" }}
+          VERSION="${TAG}.$(git rev-parse --verify --short HEAD)"
 
           pnpm release --preid ${VERSION}
           pnpm publish --tag ${TAG}
